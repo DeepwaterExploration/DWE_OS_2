@@ -1,0 +1,151 @@
+#ifndef CAMERA_HPP
+#define CAMERA_HPP
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <string.h>
+
+#include <iostream>
+#include <filesystem>
+#include <fstream>
+#include <vector>
+
+#include <linux/types.h>
+#include <linux/videodev2.h>
+#include <linux/media.h>
+#include <sys/ioctl.h>
+#include <cwalk.h>
+
+#include "list_devices.hpp"
+
+/**
+ * @brief Linux camera utility namespace
+ * 
+ */
+namespace v4l2 {
+    
+    /**
+     * @brief Convert a pixel format to a string
+     * 
+     * @param fourcc V4L2 pixel format containing 4 bytes
+     * @return std::string Converted format string
+     */
+    std::string fourcc2s(uint32_t fourcc);
+
+    enum ErrorType {
+        V4L2_SUCCESS, V4L2_OPEN_FAILURE, V4L2_INCOMPATIBLE
+    };
+
+    struct Interval {
+        uint32_t numerator, denominator;
+    };
+
+    struct FormatSize {
+        uint32_t width, height;
+        std::vector<Interval> invervals;
+    };
+
+    struct Format {
+        uint32_t pixelformat;
+        std::vector<FormatSize> sizes;
+    };
+
+    class DeviceInfo {
+    public:
+        DeviceInfo(devices::DEVICE_INFO info) : _info(info) {
+            std::string cam_name = std::filesystem::path(_info.device_paths.at(0)).filename();
+            char result[FILENAME_MAX];
+            cwk_path_join("/sys/class/video4linux/", cam_name.c_str(), result, sizeof(result));
+            std::string link = std::filesystem::read_symlink(result);
+            cwk_path_get_absolute("/sys/class/video4linux/", link.c_str(), result, sizeof(result));
+            cwk_path_join(result, "../../../", result, sizeof(result));
+            _device_path = result;
+        }
+
+        std::string get_device_attr(std::string attr) {
+            if (_cached_attrs.count(attr) > 0) {
+                return _cached_attrs.at(attr);
+            }
+            std::filesystem::path attr_path = _device_path;
+            attr_path += attr;
+            std::ifstream in(_device_path + "/" + attr);
+            if (in.good()) {
+                std::string contents((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+                contents.erase(std::remove(contents.begin(), contents.end(), '\n'), contents.cend());
+                _cached_attrs.insert(std::make_pair(attr, contents));
+                return contents;
+            }
+            throw std::invalid_argument("Invalid attribute name '" + attr + "'");
+        }
+
+    private:
+        std::string _device_path;
+        std::map<std::string, std::string> _cached_attrs;
+        devices::DEVICE_INFO _info;
+    };
+
+    class Camera {
+    public:
+        Camera(std::string path) : _path(path) { }
+
+        ~Camera() {
+            close(_fd);
+        }
+
+        inline std::string get_path() {
+            return _path;
+        }
+
+        inline int get_file_descriptor() {
+            return _fd;
+        }
+
+        inline std::vector<Format> get_formats() {
+            return _formats;
+        }
+
+        int uvc_set_ctrl(uint32_t unit, uint32_t ctrl, uint8_t *data, uint8_t size);
+
+        int uvc_get_ctrl(uint32_t unit, uint32_t ctrl, uint8_t *data, uint8_t size);
+
+        ErrorType camera_open();
+
+        bool has_format(uint32_t pixel_format);
+
+        Format get_format(uint32_t pixel_format);
+
+    private:
+        std::string _path;
+        int _fd;
+        std::vector<Format> _formats;
+    };
+
+    class Device {
+    public:
+        Device(v4l2::devices::DEVICE_INFO info);
+
+        inline std::string get_device_file_path() {
+            return _device_path;
+        }
+
+        inline std::vector<Camera*> get_cameras() {
+            return _cameras;
+        }
+
+        std::string get_device_attr(std::string attr);
+
+        Camera *find_camera_with_format(uint32_t pixel_format);
+
+    private:
+        std::string _device_path;
+        std::vector<Camera*> _cameras;
+        std::map<std::string, std::string> _cached_attrs;
+        v4l2::devices::DEVICE_INFO _info;
+    };
+
+}
+
+#endif

@@ -1,0 +1,6 @@
+[submodule "libehd/thirdparty/cwalk"]
+	path = libehd/thirdparty/cwalk
+	url = https://github.com/likle/cwalk.git
+[submodule "libehd/thirdparty/fmt"]
+	path = libehd/thirdparty/fmt
+	url = https://github.com/fmtlib/fmt.git
