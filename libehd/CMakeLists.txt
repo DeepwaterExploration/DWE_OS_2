@@ -23,6 +23,7 @@ include_directories(
     /usr/include/gstreamer-1.0
     /usr/include/libsoup-2.4
     src
+    thirdparty/cpp-httplib
 )
 
 add_subdirectory(thirdparty/cwalk)
@@ -36,13 +37,12 @@ set(SOURCE
     src/gstreamer/gst-pipeline.cpp
 )
 
-set(SOURCE
+add_executable(libehd 
     ${SOURCE}
-    src/apps/test.cpp)
-
-add_executable(libehd ${SOURCE})
+    src/apps/server.cpp)
 target_compile_options(libehd PRIVATE "-Wno-pmf-conversions") # Remove warning regarding function conversion
 target_link_libraries(libehd PRIVATE ${GSTLIBS_LIBRARIES})
 target_link_libraries(libehd PRIVATE cwalk)
 target_link_libraries(libehd PRIVATE fmt)
 target_link_libraries(libehd PRIVATE Threads::Threads)
+# target_link_libraries(libehd PRIVATE httpserver)

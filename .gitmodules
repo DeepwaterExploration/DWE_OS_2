@@ -4,3 +4,6 @@
 [submodule "libehd/thirdparty/fmt"]
 	path = libehd/thirdparty/fmt
 	url = https://github.com/fmtlib/fmt.git
+[submodule "libehd/thirdparty/cpp-httplib"]
+	path = libehd/thirdparty/cpp-httplib
+	url = https://github.com/yhirose/cpp-httplib.git

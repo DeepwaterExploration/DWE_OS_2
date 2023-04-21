@@ -4,6 +4,32 @@
 
 using namespace v4l2;
 
+DeviceInfo::DeviceInfo(devices::DEVICE_INFO info) : _info(info) {
+    std::string cam_name = std::filesystem::path(_info.device_paths.at(0)).filename();
+    char result[FILENAME_MAX];
+    cwk_path_join("/sys/class/video4linux/", cam_name.c_str(), result, sizeof(result));
+    std::string link = std::filesystem::read_symlink(result);
+    cwk_path_get_absolute("/sys/class/video4linux/", link.c_str(), result, sizeof(result));
+    cwk_path_join(result, "../../../", result, sizeof(result));
+    _device_path = result;
+}
+
+std::string DeviceInfo::get_device_attr(std::string attr) {
+    if (_cached_attrs.count(attr) > 0) {
+        return _cached_attrs.at(attr);
+    }
+    std::filesystem::path attr_path = _device_path;
+    attr_path += attr;
+    std::ifstream in(_device_path + "/" + attr);
+    if (in.good()) {
+        std::string contents((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+        contents.erase(std::remove(contents.begin(), contents.end(), '\n'), contents.cend());
+        _cached_attrs.insert(std::make_pair(attr, contents));
+        return contents;
+    }
+    throw std::invalid_argument("Invalid attribute name '" + attr + "'");
+}
+
 std::string v4l2::fourcc2s(uint32_t fourcc) {
     std::string str;
     str += fourcc & 0x7f;

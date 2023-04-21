@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
 
         /* Check if device is an exploreHD */
         if (device.get_device_attr("idVendor") == "0c45" && device.get_device_attr("idProduct") == "6366") {
-            libehd::Device *ehd = libehd::Device::construct_device(&device);
+            libehd::Device *ehd = libehd::Device::construct_device(device);
             std::cout << "\t" << "Bitrate: "    << ehd->get_bitrate() << "\n";
             std::cout << "\t" << "H.264 Mode: " << (ehd->get_h264_mode() == libehd::MODE_CONSTANT_BITRATE ? "CBR" : "VBR") << "\n";
             std::cout << "\t" << "GOP: "        << ehd->get_gop() << "\n";
@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
             streamInfo.height = 1080;
             streamInfo.interval.numerator = 1;
             streamInfo.interval.denominator = 30;
-            streamInfo.encode_type = gst::ENCODE_TYPE_H264;
+            streamInfo.encode_type = gst::ENCODE_TYPE_MJPG;
             streamInfo.stream_type = gst::STREAM_TYPE_UDP;
             streamInfo.endpoints.push_back({
                 "127.0.0.1", port++
