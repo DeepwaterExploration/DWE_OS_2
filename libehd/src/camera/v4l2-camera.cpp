@@ -100,7 +100,7 @@ ErrorType Camera::camera_open() {
                     if (ioctl(_fd, VIDIOC_ENUM_FRAMEINTERVALS, &frmival) == -1)
                         break;
                     if (frmival.type = V4L2_FRMIVAL_TYPE_DISCRETE) {
-                        format_size.invervals.push_back({
+                        format_size.intervals.push_back({
                             frmival.discrete.numerator, frmival.discrete.denominator
                         });
                     }

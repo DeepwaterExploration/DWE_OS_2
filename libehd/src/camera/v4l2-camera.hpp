@@ -45,7 +45,7 @@ namespace v4l2 {
 
     struct FormatSize {
         uint32_t width, height;
-        std::vector<Interval> invervals;
+        std::vector<Interval> intervals;
     };
 
     struct Format {

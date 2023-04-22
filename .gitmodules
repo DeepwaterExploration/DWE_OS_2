@@ -7,3 +7,6 @@
 [submodule "libehd/thirdparty/cpp-httplib"]
 	path = libehd/thirdparty/cpp-httplib
 	url = https://github.com/yhirose/cpp-httplib.git
+[submodule "libehd/thirdparty/json"]
+	path = libehd/thirdparty/json
+	url = https://github.com/nlohmann/json.git
