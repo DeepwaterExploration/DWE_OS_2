@@ -53,16 +53,34 @@ namespace v4l2 {
         std::vector<FormatSize> sizes;
     };
 
-    class DeviceInfo {
-    public:
-        DeviceInfo(devices::DEVICE_INFO info);
+    struct RealFormat {
+        uint32_t pixelformat;
+        uint32_t width;
+        uint32_t height;
+        uint32_t buffer_size;
+    };
 
-        std::string get_device_attr(std::string attr);
+    struct MenuItem {
+        uint32_t index;
+        int64_t value; // integer menu
+        std::string name; // normal menu
+    };
 
-    private:
-        std::string _device_path;
-        std::map<std::string, std::string> _cached_attrs;
-        devices::DEVICE_INFO _info;
+    struct Control {
+        uint32_t id;
+        std::string name;
+        struct {
+            unsigned disabled: 1;
+            unsigned grabbed: 1;
+            unsigned read_only: 1;
+            unsigned update: 1;
+            unsigned slider: 1;
+            unsigned write_only: 1;
+            unsigned volatility: 1;
+        } flags;
+        v4l2_ctrl_type type;
+        int32_t max, min, step, default_value;
+        std::vector<MenuItem> menuItems;
     };
 
     class Camera {
@@ -95,10 +113,14 @@ namespace v4l2 {
 
         Format get_format(uint32_t pixel_format);
 
+        void configure_format(uint32_t format, uint32_t width, uint32_t height);
+
     private:
+        RealFormat _format;
         std::string _path;
         int _fd;
         std::vector<Format> _formats;
+        std::vector<Control> _controls;
     };
 
     class Device {
@@ -117,11 +139,20 @@ namespace v4l2 {
 
         Camera *find_camera_with_format(uint32_t pixel_format);
 
+        void query_uvc_controls();
+
+        std::vector<Control> get_uvc_controls();
+
+        inline v4l2::devices::DEVICE_INFO get_info() {
+            return _info;
+        }
+
     private:
         std::string _device_path;
         std::vector<Camera*> _cameras;
         std::map<std::string, std::string> _cached_attrs;
         v4l2::devices::DEVICE_INFO _info;
+        std::vector<Control> _controls;
     };
 
 }

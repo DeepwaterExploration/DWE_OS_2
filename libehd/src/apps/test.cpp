@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
     uint32_t port = 5600;
     for (const auto &device_info : devices_info) {
         v4l2::Device device(device_info);
-        std::cout << device_info.device_description << " at " << device_info.bus_info << " - " << device.get_device_file_path();
+        std::cout << device_info.device_name << " at " << device_info.bus_info << " - " << device.get_device_file_path();
         std::cout << " - (" << device.get_device_attr("idVendor") << "/" << device.get_device_attr("idProduct") << ")" << "\n";
 
         /* Check if device is an exploreHD */

@@ -26,6 +26,7 @@
 #include <vector>
 #include <map>
 #include <algorithm> //for sorting
+#include <iostream>
 
 #include <linux/types.h>
 #include <linux/videodev2.h>
@@ -41,7 +42,7 @@ namespace v4l2
 
         struct DEVICE_INFO
         {
-            std::string device_description;
+            std::string device_name;
             std::string bus_info;
             std::vector<std::string> device_paths;
             
@@ -136,7 +137,7 @@ namespace v4l2
                         DEVICE_INFO device;
                         device.device_paths.emplace_back(file);
                         device.bus_info = bus_info;
-                        device.device_description = card;
+                        device.device_name = card;
                         device_map.insert(std::pair<std::string, DEVICE_INFO>(bus_info, device));
                     }
                 }
