@@ -68,20 +68,21 @@ void RawPipeline::_run(void *) {
 /* gst::Pipeline definitions */
 
 std::string Pipeline::_getDevicePath() {
-    uint32_t pixel_format;
-    switch (_streamInfo.encode_type) {
-        case ENCODE_TYPE_H264:
-            pixel_format = V4L2_PIX_FMT_H264;
-            break;
-        case ENCODE_TYPE_MJPG:
-            pixel_format = V4L2_PIX_FMT_MJPEG;
-            break;
-        default:
-            throw std::runtime_error("Unsported stream encode type");
-    }
-    v4l2::Camera *camera = _streamInfo.device->find_camera_with_format(pixel_format);
-    if (!camera) throw std::runtime_error("Camera does not have the required pixel format!");
-    return camera->get_path();
+    // uint32_t pixel_format;
+    // switch (_streamInfo.encode_type) {
+    //     case ENCODE_TYPE_H264:
+    //         pixel_format = V4L2_PIX_FMT_H264;
+    //         break;
+    //     case ENCODE_TYPE_MJPG:
+    //         pixel_format = V4L2_PIX_FMT_MJPEG;
+    //         break;
+    //     default:
+    //         throw std::runtime_error("Unsported stream encode type");
+    // }
+    // v4l2::Camera *camera = _streamInfo.device->find_camera_with_format(pixel_format);
+    // if (!camera) throw std::runtime_error("Camera does not have the required pixel format!");
+    // return camera->get_path();
+    return _streamInfo.device_path;
 }
 
 std::string Pipeline::_getFormat() {

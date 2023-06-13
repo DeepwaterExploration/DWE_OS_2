@@ -9,7 +9,7 @@
 #include <gst/gst.h>
 #include <fmt/core.h>
 
-#include "camera/v4l2-camera.hpp"
+#include "camera/v4l2-types.hpp"
 
 namespace gst {
 
@@ -71,16 +71,16 @@ namespace gst {
     };
 
     enum EncodeType {
-        ENCODE_TYPE_H264, ENCODE_TYPE_MJPG
+        ENCODE_TYPE_NONE, ENCODE_TYPE_H264, ENCODE_TYPE_MJPG
     };
 
     enum StreamType {
-        STREAM_TYPE_UDP
+        STREAM_TYPE_NONE, STREAM_TYPE_UDP
     };
 
     struct StreamInformation {
         std::vector<StreamEndpoint> endpoints;
-        v4l2::Device *device;
+        std::string device_path;
         EncodeType encode_type;
         StreamType stream_type;
         uint32_t width, height;
@@ -89,8 +89,23 @@ namespace gst {
 
     class Pipeline : public RawPipeline {
     public:
+        Pipeline() { }
+
         Pipeline(const StreamInformation &streamInfo) : RawPipeline(), _streamInfo(streamInfo) {
             setPipelineString(_constructPipeline());
+        }
+
+        void setStreamInformation(StreamInformation streamInfo) {
+            _streamInfo = streamInfo;
+            setPipelineString(_constructPipeline());
+        }
+
+        StreamInformation getStreamInfo() {
+            return _streamInfo;
+        }
+
+        void addEndpoint(const StreamEndpoint &endpoint) {
+            _streamInfo.endpoints.push_back(endpoint);
         }
     
     private:

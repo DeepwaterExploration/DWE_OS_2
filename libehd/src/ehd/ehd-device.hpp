@@ -25,9 +25,9 @@ namespace libehd {
          * @param device v4l2 device
          * @return Device* 
          */
-        static Device *construct_device(v4l2::Device &device);
+        static Device *construct_device(v4l2::Device *device);
 
-        v4l2::Device get_v4l2_device();
+        v4l2::Device *get_v4l2_device();
 
         /**
          * @brief Get the bitrate of the camera
@@ -77,9 +77,9 @@ namespace libehd {
          * 
          * @param camera camera handle
          */
-        Device(v4l2::Device &device);
+        Device(v4l2::Device *device);
 
-        v4l2::Device _device;
+        v4l2::Device *_device;
         std::string _bus_info;
         std::vector<std::string> _device_paths;
         std::map<std::string, xu::Option*> _options;

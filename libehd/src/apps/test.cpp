@@ -27,14 +27,15 @@ int main(int argc, char** argv) {
 
         /* Check if device is an exploreHD */
         if (device.get_device_attr("idVendor") == "0c45" && device.get_device_attr("idProduct") == "6366") {
-            libehd::Device *ehd = libehd::Device::construct_device(device);
+            libehd::Device *ehd = libehd::Device::construct_device(&device);
             std::cout << "\t" << "Bitrate: "    << ehd->get_bitrate() << "\n";
             std::cout << "\t" << "H.264 Mode: " << (ehd->get_h264_mode() == libehd::MODE_CONSTANT_BITRATE ? "CBR" : "VBR") << "\n";
             std::cout << "\t" << "GOP: "        << ehd->get_gop() << "\n";
 
             /* Construct the stream information */
             gst::StreamInformation streamInfo;
-            streamInfo.device = &device;
+            // streamInfo.device = &device;
+            streamInfo.device_path = device.find_camera_with_format(V4L2_PIX_FMT_MJPEG)->get_path();
             streamInfo.width = 1920;
             streamInfo.height = 1080;
             streamInfo.interval.numerator = 1;

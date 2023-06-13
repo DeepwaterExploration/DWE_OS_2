@@ -19,7 +19,10 @@
 #include <sys/ioctl.h>
 #include <cwalk.h>
 
+#include "../gstreamer/gst-pipeline.hpp"
+
 #include "list_devices.hpp"
+#include "v4l2-types.hpp"
 
 /**
  * @brief Linux camera utility namespace
@@ -35,57 +38,11 @@ namespace v4l2 {
      */
     std::string fourcc2s(uint32_t fourcc);
 
-    enum ErrorType {
-        V4L2_SUCCESS, V4L2_OPEN_FAILURE, V4L2_INCOMPATIBLE
-    };
-
-    struct Interval {
-        uint32_t numerator, denominator;
-    };
-
-    struct FormatSize {
-        uint32_t width, height;
-        std::vector<Interval> intervals;
-    };
-
-    struct Format {
-        uint32_t pixelformat;
-        std::vector<FormatSize> sizes;
-    };
-
-    struct RealFormat {
-        uint32_t pixelformat;
-        uint32_t width;
-        uint32_t height;
-        uint32_t buffer_size;
-    };
-
-    struct MenuItem {
-        uint32_t index;
-        int64_t value; // integer menu
-        std::string name; // normal menu
-    };
-
-    struct Control {
-        uint32_t id;
-        std::string name;
-        struct {
-            unsigned disabled: 1;
-            unsigned grabbed: 1;
-            unsigned read_only: 1;
-            unsigned update: 1;
-            unsigned slider: 1;
-            unsigned write_only: 1;
-            unsigned volatility: 1;
-        } flags;
-        v4l2_ctrl_type type;
-        int32_t max, min, step, default_value;
-        std::vector<MenuItem> menuItems;
-    };
-
     class Camera {
     public:
-        Camera(std::string path) : _path(path) { }
+        Camera(std::string path) : _path(path) {
+            _pipeline = new gst::Pipeline();
+        }
 
         ~Camera() {
             close(_fd);
@@ -113,7 +70,17 @@ namespace v4l2 {
 
         Format get_format(uint32_t pixel_format);
 
-        void configure_format(uint32_t format, uint32_t width, uint32_t height);
+        void configure_pipeline(gst::EncodeType encodeType, uint32_t width, uint32_t height, Interval interval);
+        void configure_pipeline();
+        void start_pipeline();
+        void stop_pipeline();
+        void add_stream_endpoint(const gst::StreamEndpoint &endpoint);
+
+        inline gst::Pipeline *get_pipeline() {
+            return _pipeline;
+        }
+
+        // void configure_format(uint32_t format, uint32_t width, uint32_t height);
 
     private:
         RealFormat _format;
@@ -121,6 +88,7 @@ namespace v4l2 {
         int _fd;
         std::vector<Format> _formats;
         std::vector<Control> _controls;
+        gst::Pipeline *_pipeline;
     };
 
     class Device {

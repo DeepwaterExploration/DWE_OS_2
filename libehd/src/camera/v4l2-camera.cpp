@@ -54,7 +54,7 @@ void Device::query_uvc_controls() {
         if (ioctl(fd, VIDIOC_QUERYCTRL, &qctrl) == -1) continue;
         control.id = cid;
         control.name = (char*)qctrl.name;
-        std::cout << "  UVC Control: " << cid << " (" << control.name << ")" << "\n";
+        // std::cout << "  UVC Control: " << cid << " (" << control.name << ")" << "\n";
         
         control.flags.disabled = (qctrl.flags & V4L2_CTRL_FLAG_DISABLED);
         control.flags.grabbed = (qctrl.flags & V4L2_CTRL_FLAG_GRABBED);
@@ -148,6 +148,8 @@ ErrorType Camera::camera_open() {
     }
     if (_formats.size() == 0) return V4L2_INCOMPATIBLE;
 
+    configure_pipeline();
+
     return V4L2_SUCCESS;
 }
 
@@ -169,27 +171,70 @@ Format Camera::get_format(uint32_t pixel_format) {
     throw std::runtime_error("Format not found!");
 }
 
-void Camera::configure_format(uint32_t format, uint32_t width, uint32_t height) {
-    v4l2_format fmt;
-    memset(&(fmt), 0, sizeof(fmt));
-    fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    fmt.fmt.pix.width = width;
-    fmt.fmt.pix.height = height;
-    fmt.fmt.pix.pixelformat = format;
-    if (ioctl(_fd, VIDIOC_S_FMT, &fmt) == -1) {
-        throw std::runtime_error("Error setting format!");
-    }
+// void Camera::configure_format(uint32_t format, uint32_t width, uint32_t height) {
+//     v4l2_format fmt;
+//     memset(&(fmt), 0, sizeof(fmt));
+//     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+//     fmt.fmt.pix.width = width;
+//     fmt.fmt.pix.height = height;
+//     fmt.fmt.pix.pixelformat = format;
+//     if (ioctl(_fd, VIDIOC_S_FMT, &fmt) == -1) {
+//         throw std::runtime_error("Error setting format!");
+//     }
 
-    memset(&(fmt), 0, sizeof(fmt));
-    fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    if (ioctl(_fd, VIDIOC_G_FMT, &fmt) == 0) {
-        std::cout << fourcc2s(fmt.fmt.pix.pixelformat) << " size: " << fmt.fmt.pix.width << "x" << fmt.fmt.pix.height << " buffer size: " << fmt.fmt.pix.sizeimage << "\n";
-        _format.pixelformat = fmt.fmt.pix.pixelformat;
-        _format.width = fmt.fmt.pix.width;
-        _format.height = fmt.fmt.pix.height;
-        _format.buffer_size = fmt.fmt.pix.sizeimage;
-    }
+//     memset(&(fmt), 0, sizeof(fmt));
+//     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+//     if (ioctl(_fd, VIDIOC_G_FMT, &fmt) == 0) {
+//         std::cout << fourcc2s(fmt.fmt.pix.pixelformat) << " size: " << fmt.fmt.pix.width << "x" << fmt.fmt.pix.height << " buffer size: " << fmt.fmt.pix.sizeimage << "\n";
+//         _format.pixelformat = fmt.fmt.pix.pixelformat;
+//         _format.width = fmt.fmt.pix.width;
+//         _format.height = fmt.fmt.pix.height;
+//         _format.buffer_size = fmt.fmt.pix.sizeimage;
+//     }
 
+// }
+
+void Camera::configure_pipeline(gst::EncodeType encodeType, uint32_t width, uint32_t height, Interval interval) {
+    gst::StreamInformation streamInfo;
+    streamInfo.device_path = _path;
+
+    std::cout << _path << "\n";
+
+    uint32_t pixel_format;
+    switch (encodeType) {
+        case gst::ENCODE_TYPE_H264:
+            pixel_format = V4L2_PIX_FMT_H264;
+            break;
+        case gst::ENCODE_TYPE_MJPG:
+            pixel_format = V4L2_PIX_FMT_MJPEG;
+            break;
+    }
+    if (encodeType != gst::ENCODE_TYPE_NONE && !has_format(pixel_format))
+        throw std::runtime_error("Specified camera does not have the pixel format given.");
+
+    streamInfo.encode_type = encodeType;
+    streamInfo.width = width;
+    streamInfo.height = height;
+    streamInfo.stream_type = gst::STREAM_TYPE_UDP;
+    streamInfo.interval = interval;
+
+    _pipeline->setStreamInformation(streamInfo);
+}
+
+void Camera::configure_pipeline() {
+    configure_pipeline(gst::ENCODE_TYPE_NONE, 1920, 1080, Interval(1, 30));
+}
+
+void Camera::start_pipeline() {
+    _pipeline->start();
+}
+
+void Camera::stop_pipeline() {
+    _pipeline->stop();
+}
+
+void Camera::add_stream_endpoint(const gst::StreamEndpoint &endpoint) {
+    _pipeline->addEndpoint(endpoint);
 }
 
 /* v4l2::Device definitions */
