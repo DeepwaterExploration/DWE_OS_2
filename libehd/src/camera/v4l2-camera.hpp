@@ -40,9 +40,7 @@ namespace v4l2 {
 
     class Camera {
     public:
-        Camera(std::string path) : _path(path) {
-            _pipeline = new gst::Pipeline();
-        }
+        Camera(std::string path) : _path(path) { }
 
         ~Camera() {
             close(_fd);
@@ -70,25 +68,12 @@ namespace v4l2 {
 
         Format get_format(uint32_t pixel_format);
 
-        void configure_pipeline(gst::EncodeType encodeType, uint32_t width, uint32_t height, Interval interval);
-        void configure_pipeline();
-        void start_pipeline();
-        void stop_pipeline();
-        void add_stream_endpoint(const gst::StreamEndpoint &endpoint);
-
-        inline gst::Pipeline *get_pipeline() {
-            return _pipeline;
-        }
-
-        // void configure_format(uint32_t format, uint32_t width, uint32_t height);
-
     private:
         RealFormat _format;
         std::string _path;
         int _fd;
         std::vector<Format> _formats;
         std::vector<Control> _controls;
-        gst::Pipeline *_pipeline;
     };
 
     class Device {
@@ -115,12 +100,23 @@ namespace v4l2 {
             return _info;
         }
 
+        void configure_stream(uint32_t pixel_format, uint32_t width, uint32_t height, Interval interval, gst::StreamType streamType);
+        void start_stream();
+        void stop_stream();
+        void add_stream_endpoint(const std::string &host, uint32_t port);
+        bool is_stream_configured();
+        
+        inline gst::Pipeline *get_pipeline() {
+            return _pipeline;
+        }
+
     private:
         std::string _device_path;
         std::vector<Camera*> _cameras;
         std::map<std::string, std::string> _cached_attrs;
         v4l2::devices::DEVICE_INFO _info;
         std::vector<Control> _controls;
+        gst::Pipeline *_pipeline;
     };
 
 }

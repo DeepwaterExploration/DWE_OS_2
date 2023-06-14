@@ -17,6 +17,10 @@ public:
         gst::StreamInformation streamInfo = pipeline->getStreamInfo();
         json pipeline_object = json::object();
 
+        if (!pipeline->getIsConfigured()) {
+            return pipeline_object;
+        }
+
         pipeline_object["device_path"] = streamInfo.device_path;
 
         pipeline_object["endpoints"] = json::array();
@@ -75,6 +79,7 @@ public:
         device_object["cameras"] = json::array();
 
         device_object["controls"] = json::array();
+        device_object["stream"] = serialize_pipeline(v4l2_device->get_pipeline());
 
         v4l2_device->query_uvc_controls();
         for (v4l2::Control control : v4l2_device->get_uvc_controls()) {
@@ -118,8 +123,6 @@ public:
             camera_object["device_path"] = camera->get_path();
             camera_object["formats"] = json::array();
 
-            camera_object["stream"] = serialize_pipeline(camera->get_pipeline());
-
             // serialize formats into json data
             std::vector<v4l2::Format> formats = camera->get_formats();
             for (v4l2::Format format : formats) {
@@ -161,7 +164,6 @@ public:
             /* Check if device is an exploreHD */
             if (v4l2_device->get_device_attr("idVendor") == "0c45" && v4l2_device->get_device_attr("idProduct") == "6366") {
                 libehd::Device *ehd = libehd::Device::construct_device(v4l2_device);
-                std::cout << (ehd->get_v4l2_device() == v4l2_device) << "\n";
                 ehd_devices.push_back(ehd);
 
                 json device_object = serialize_ehd(ehd);
@@ -172,7 +174,11 @@ public:
     }
 
     json serialize() {
-        return _devices_array;
+        json devices_array = json::array();
+        for (libehd::Device *ehd : ehd_devices) {
+            devices_array.push_back(serialize_ehd(ehd));
+        }
+        return devices_array;
     }
 
 public:
@@ -191,27 +197,69 @@ int main(int argc, char** argv) {
     devices.enumerate();
 
     std::cout << "Running server.\n";
-
-    // v4l2::Device *device = devices.get_ehd(1)->get_v4l2_device();
-    // v4l2::Interval interval;
-    // interval.numerator = 1;
-    // interval.denominator = 30;
-    // device->find_camera_with_format(V4L2_PIX_FMT_H264)->configure_pipeline(gst::ENCODE_TYPE_H264, 1920, 1080, interval);
+    
+    v4l2::Device *device = devices.get_ehd(1)->get_v4l2_device();
+    device->configure_stream(V4L2_PIX_FMT_MJPEG, 1920, 1080, v4l2::Interval(1, 30), gst::STREAM_TYPE_UDP);
+    device->add_stream_endpoint("127.0.0.1", 5600);
+    // device->start_stream();
     
     /* Test code to show the devices in plain text in the browser */
     svr.Get("/devices", [&devices](const httplib::Request &, httplib::Response &res) {
         /* re-enumerate */
-        devices.enumerate();
         json devices_array = devices.serialize();
         res.set_content(devices_array.dump(), "application/json");
     });
 
     svr.Get("/device", [&devices](const httplib::Request &req, httplib::Response &res) {
-        devices.enumerate();
         auto itr = req.params.find("index");
         libehd::Device *ehd = devices.get_ehd(std::stoi(itr->second));
         json resbody = devices.serialize_ehd(ehd);
         res.set_content(resbody.dump(), "application/json");
+    });
+
+    svr.Post("/configureStream", [&devices](const httplib::Request &req, httplib::Response &res) {
+        json requestBody = json::parse(req.body);
+        int index = requestBody["index"];
+        json format = requestBody["format"];
+        libehd::Device *ehd = devices.get_ehd(index);
+        v4l2::Device *device = ehd->get_v4l2_device();
+
+        uint32_t pixel_format;
+        if (format["format"] == "MJPG") {
+            pixel_format = V4L2_PIX_FMT_MJPEG;
+        } else if (format["format"] == "H264") {
+            pixel_format = V4L2_PIX_FMT_H264;
+        }
+
+        int width = format["width"];
+        int height = format["height"];
+        json interval_object = format["interval"];
+        int numerator = interval_object["numerator"];
+        int denominator = interval_object["denominator"];
+
+        device->configure_stream(pixel_format, width, height, v4l2::Interval(numerator, denominator), gst::STREAM_TYPE_UDP);
+    });
+
+    svr.Post("/addStreamEndpoint", [&devices](const httplib::Request &req, httplib::Response &res) {
+        json requestBody = json::parse(req.body);
+        int index = requestBody["index"];
+        json endpoint = requestBody["endpoint"];
+        std::string host = endpoint["host"];
+        int port = endpoint["port"];
+        libehd::Device *ehd = devices.get_ehd(index);
+        v4l2::Device *device = ehd->get_v4l2_device();
+        device->add_stream_endpoint(host, port);
+    });
+
+    svr.Post("/startStream", [&devices](const httplib::Request &req, httplib::Response &res) {
+        json requestBody = json::parse(req.body);
+        int index = requestBody["index"];
+        libehd::Device *ehd = devices.get_ehd(index);
+        v4l2::Device *device = ehd->get_v4l2_device();
+        if (device->is_stream_configured()) {
+            std::cout << "Starting stream for device at index: " << index << "\n";
+            device->start_stream();
+        }
     });
 
     /* Leave the pipeline threads running */

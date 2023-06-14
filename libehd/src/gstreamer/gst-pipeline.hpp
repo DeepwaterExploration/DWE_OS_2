@@ -60,6 +60,7 @@ namespace gst {
         GstBus *_bus;
         GstMessage *_msg;
         pthread_t _thread;
+        bool _isRunning = false;
 
     private:
         void _run(void*);
@@ -92,11 +93,13 @@ namespace gst {
         Pipeline() { }
 
         Pipeline(const StreamInformation &streamInfo) : RawPipeline(), _streamInfo(streamInfo) {
+            _isConfigured = true;
             setPipelineString(_constructPipeline());
         }
 
         void setStreamInformation(StreamInformation streamInfo) {
             _streamInfo = streamInfo;
+            _isConfigured = true;
             setPipelineString(_constructPipeline());
         }
 
@@ -104,12 +107,19 @@ namespace gst {
             return _streamInfo;
         }
 
+        bool getIsConfigured() {
+            return _isConfigured;
+        }
+
         void addEndpoint(const StreamEndpoint &endpoint) {
             _streamInfo.endpoints.push_back(endpoint);
+            setPipelineString(_constructPipeline());
         }
     
     private:
         StreamInformation _streamInfo;
+
+        bool _isConfigured = false;
 
         std::string _getDevicePath();
         std::string _getFormat();
