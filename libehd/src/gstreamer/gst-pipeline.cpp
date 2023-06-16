@@ -7,7 +7,9 @@ typedef void * (*THREADFUNCPTR)(void *);
 /* gst::RawPipeline definitions */
 
 void RawPipeline::start() {
-    if (_isRunning) return;
+    if (_isRunning) {
+        stop();
+    }
     // std::cout << _pipeline_str << "\n";
     _isRunning = true;
     std::cout << _pipeline_str << "\n";
@@ -18,6 +20,11 @@ void RawPipeline::stop() {
     if (!_isRunning) return;
     _isRunning = false;
     pthread_cancel(_thread);
+}
+
+void RawPipeline::restart() {
+    stop();
+    start();
 }
 
 void RawPipeline::_run(void *) {
@@ -119,6 +126,10 @@ std::string Pipeline::_buildSink() {
     std::string sink;
     switch (_streamInfo.stream_type) {
         case STREAM_TYPE_UDP:
+            if (_streamInfo.endpoints.size() == 0) {
+                sink = "fakesink";
+                break;
+            }
             sink = "multiudpsink clients=";
             for (auto iter = _streamInfo.endpoints.begin(); iter != _streamInfo.endpoints.end(); iter++) {
                 StreamEndpoint endpoint = *iter;

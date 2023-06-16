@@ -10,7 +10,8 @@ public:
     DeviceList() { }
 
     libehd::Device *get_ehd(int index) {
-        return ehd_devices.at(index);
+        if (index >= ehd_devices.size()) return nullptr;
+        return ehd_devices[index];
     }
 
     json serialize_pipeline(gst::Pipeline *pipeline) {
@@ -191,16 +192,17 @@ public:
 httplib::Server svr;
 
 int main(int argc, char** argv) {
+    /* Initialize gstreamer */
     gst_init(&argc, &argv);
 
     DeviceList devices;
     devices.enumerate();
 
-    std::cout << "Running server.\n";
+    std::cout << "Running API backend.\n";
     
-    v4l2::Device *device = devices.get_ehd(1)->get_v4l2_device();
-    device->configure_stream(V4L2_PIX_FMT_MJPEG, 1920, 1080, v4l2::Interval(1, 30), gst::STREAM_TYPE_UDP);
-    device->add_stream_endpoint("127.0.0.1", 5600);
+    // v4l2::Device *device = devices.get_ehd(1)->get_v4l2_device();
+    // device->configure_stream(V4L2_PIX_FMT_MJPEG, 1920, 1080, v4l2::Interval(1, 30), gst::STREAM_TYPE_UDP);
+    // device->add_stream_endpoint("127.0.0.1", 5600);
     // device->start_stream();
     
     /* Test code to show the devices in plain text in the browser */
@@ -211,8 +213,26 @@ int main(int argc, char** argv) {
     });
 
     svr.Get("/device", [&devices](const httplib::Request &req, httplib::Response &res) {
-        auto itr = req.params.find("index");
-        libehd::Device *ehd = devices.get_ehd(std::stoi(itr->second));
+        /* manually find because params.find is unreliable */
+        int index = -1;
+        for (auto itr = req.params.begin(); itr != req.params.end(); itr++) {
+            if (itr->first == "index") {
+                index = std::stoi(itr->second);
+            }
+        }
+
+        /* if index was not found */
+        if (index < 0) {
+            res.status = 400; /* Status 400: Bad Request */
+            return;
+        }
+
+        libehd::Device *ehd = devices.get_ehd(index);
+        /* index is invalid */
+        if (!ehd) {
+            res.status = 400; /* Status 400: Bad Request */
+            return;
+        }
         json resbody = devices.serialize_ehd(ehd);
         res.set_content(resbody.dump(), "application/json");
     });
@@ -265,4 +285,3 @@ int main(int argc, char** argv) {
     /* Leave the pipeline threads running */
     svr.listen("localhost", 8080);
 }
-

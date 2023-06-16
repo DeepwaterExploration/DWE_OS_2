@@ -54,6 +54,12 @@ namespace gst {
          */
         void stop();
 
+        /**
+         * @brief Restart the stream
+         * 
+         */
+        void restart();
+
     private:
         std::string _pipeline_str;
         GstElement *_pipeline;
