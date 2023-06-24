@@ -28,6 +28,7 @@ int Camera::uvc_set_ctrl(uint32_t unit, uint32_t ctrl, uint8_t *data, uint8_t si
     xctrlq.query = UVC_SET_CUR;
     xctrlq.size = size;
     xctrlq.data = data;
+
     /* Interface with the hardware of the H.264 enabled camera */
     return ioctl(_fd, UVCIOC_CTRL_QUERY, &xctrlq);
 }
@@ -42,6 +43,20 @@ int Camera::uvc_get_ctrl(uint32_t unit, uint32_t ctrl, uint8_t *data, uint8_t si
     xctrlq.data = data;
     /* Interface with the hardware of the H.264 enabled camera */
     return ioctl(_fd, UVCIOC_CTRL_QUERY, &xctrlq);
+}
+
+int Device::set_pu(int id, int32_t value) {
+    int fd = _cameras.at(0)->get_file_descriptor();
+    v4l2_control control = {id, value};
+    return ioctl(fd, VIDIOC_G_CTRL, &control);
+}
+
+int Device::get_pu(int id, int32_t &value) {
+    int fd = _cameras.at(0)->get_file_descriptor();
+    v4l2_control control = {id, 0};
+    int res = ioctl(fd, VIDIOC_G_CTRL, &control);
+    value = control.value;
+    return res;
 }
 
 void Device::query_uvc_controls() {

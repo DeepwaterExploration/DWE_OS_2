@@ -10,7 +10,6 @@ void RawPipeline::start() {
     if (_isRunning) {
         stop();
     }
-    // std::cout << _pipeline_str << "\n";
     _isRunning = true;
     std::cout << _pipeline_str << "\n";
     pthread_create(&_thread, NULL, (THREADFUNCPTR) &RawPipeline::_run, this);
@@ -19,7 +18,8 @@ void RawPipeline::start() {
 void RawPipeline::stop() {
     if (!_isRunning) return;
     _isRunning = false;
-    pthread_cancel(_thread);
+    gst_element_set_state(_pipeline, GST_STATE_NULL); // stop the pipeline thread
+    pthread_kill(_thread, 0); // stop the other pipeline thread
 }
 
 void RawPipeline::restart() {
