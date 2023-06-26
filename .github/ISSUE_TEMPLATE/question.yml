@@ -1,0 +1,23 @@
+# https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/syntax-for-githubs-form-schema
+name: ❓ Ask a Question
+description: Ask a question about a bug, feature, or anything in the project!
+title: "[QUESTION]: <title>"
+labels: [question]
+assignees: []
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary of the question
+      description: A brief and clear description of the question.
+      placeholder: Ex. How do I configure [...]
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Details of the question
+      description: Additional details about the question.
+      placeholder: Ex. I tried [...]
+    validations:
+      required: false

@@ -1,0 +1,43 @@
+---
+name: Test Building Code
+# Controls when the workflow will run
+on: [push, pull_request, workflow_dispatch]
+# The sequence of runs in this workflow:
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out Repository Code
+        uses: actions/checkout@v3
+      - name: Cache Streaming Dependencies
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: libunwind-dev libudev-dev libgstreamer-plugins-base1.0-dev libgstreamer1.0-dev gstreamer1.0-plugins-good gstreamer1.0-plugins-bad
+          version: 1.1
+      - name: Set Up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - name: Cache Node Dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ui/node_modules
+            ui/client/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('ui/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - name: Install Node Dependencies
+        run: |
+          cd ui
+          npm install
+          npm ci
+          cd client
+          npm install
+          cd ..
+      - name: Build Repository Code
+        run: |
+          cd ui
+          npm run build
