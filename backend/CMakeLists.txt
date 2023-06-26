@@ -1,0 +1,50 @@
+cmake_minimum_required(VERSION 3.1)
+project(libehd VERSION 0.0.1 LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(JSON_BuildTests OFF CACHE INTERNAL "")
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GSTLIBS REQUIRED
+    gobject-2.0
+    glib-2.0
+    gstreamer-sdp-1.0
+    gstreamer-pbutils-1.0
+    libsoup-2.4
+    gstreamer-check-1.0
+    libudev)
+find_package(Threads REQUIRED)
+
+include_directories(
+    /usr/lib/x86_64-linux-gnu/glib-2.0/include
+    /usr/include/glib-2.0
+    /usr/include/gstreamer-1.0
+    /usr/include/libsoup-2.4
+    src
+    thirdparty/cpp-httplib
+)
+
+add_subdirectory(thirdparty/cwalk)
+add_subdirectory(thirdparty/fmt)
+add_subdirectory(thirdparty/json)
+
+set(SOURCE
+    ${SOURCE}
+    src/camera/v4l2-camera.cpp
+    src/ehd/ehd-option.cpp
+    src/ehd/ehd-device.cpp
+    src/gstreamer/gst-pipeline.cpp
+)
+
+add_executable(libehd 
+    ${SOURCE}
+    src/apps/server.cpp)
+target_compile_options(libehd PRIVATE "-Wno-pmf-conversions") # Remove warning regarding function conversion
+target_link_libraries(libehd PRIVATE ${GSTLIBS_LIBRARIES})
+target_link_libraries(libehd PRIVATE cwalk)
+target_link_libraries(libehd PRIVATE fmt)
+target_link_libraries(libehd PRIVATE nlohmann_json::nlohmann_json)
+target_link_libraries(libehd PRIVATE Threads::Threads)
+# target_link_libraries(libehd PRIVATE httpserver)
