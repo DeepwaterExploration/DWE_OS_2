@@ -8,11 +8,7 @@ set(JSON_BuildTests OFF CACHE INTERNAL "")
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GSTLIBS REQUIRED
-    gobject-2.0
     glib-2.0
-    gstreamer-sdp-1.0
-    gstreamer-pbutils-1.0
-    libsoup-2.4
     gstreamer-check-1.0
     libudev)
 find_package(Threads REQUIRED)
@@ -21,7 +17,6 @@ include_directories(
     /usr/lib/x86_64-linux-gnu/glib-2.0/include
     /usr/include/glib-2.0
     /usr/include/gstreamer-1.0
-    /usr/include/libsoup-2.4
     src
     thirdparty/cpp-httplib
 )
@@ -38,7 +33,7 @@ set(SOURCE
     src/gstreamer/gst-pipeline.cpp
 )
 
-add_executable(libehd 
+add_executable(libehd
     ${SOURCE}
     src/apps/server.cpp)
 target_compile_options(libehd PRIVATE "-Wno-pmf-conversions") # Remove warning regarding function conversion
