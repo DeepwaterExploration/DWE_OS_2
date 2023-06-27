@@ -24,20 +24,15 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            ui/node_modules
-            ui/client/node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('ui/package-lock.json') }}
+            frontend/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('frontend/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
       - name: Install Node Dependencies
         run: |
-          cd ui
+          cd frontend
           npm install
-          npm ci
-          cd client
-          npm install
-          cd ..
       - name: Build Repository Code
         run: |
-          cd ui
+          cd frontend
           npm run build
