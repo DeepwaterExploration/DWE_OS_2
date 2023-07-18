@@ -21,6 +21,8 @@ export interface Device {
     device_path: string;
     encode_type: encodeType;
     stream_type: streamType;
+    endpoints: Endpoint[];
+    format: Format;
     // Add more properties if needed
   };
 }
@@ -143,7 +145,7 @@ export async function getDevice(id: number): Promise<Device> {
  */
 interface Format {
   /* The pixel format of the stream */
-  format: format;
+  format: string;
   /* The stream width */
   width: number;
   /* The stream height */

@@ -123,9 +123,10 @@ const ResolutionMenu: React.FC<ResolutionMenuProps> = (props) => {
           aria-label='when device is locked'
           aria-expanded={open ? "true" : undefined}
           onClick={handleClickListItem}
-          sx={{ margin: "0px",
-          padding: "6px 16px"
-         }}
+          sx={{
+            margin: "0px",
+            padding: "6px 16px"
+          }}
         >
           <ListItemText primary={primaryText} />
         </ListItem>
@@ -229,115 +230,12 @@ interface StreamOptionsProps {
   device: Device;
 }
 
+// TODO: create stream options
 const StreamOptions: React.FC<StreamOptionsProps> = (props) => {
-  console.log(props.device);
-  const [udp, setUDP] = useState(props.device.stream.isStreaming);
-  const [hostAddress, setHostAddress] = useState(props.device.stream.host);
-  const [port, setPort] = useState(props.device.stream.port);
-  const [resolution, setResolution] = useState(
-    `${props.device.stream.format.height}x${props.device.stream.format.width}`
-  );
-  const restartStream = () => {
-    // makePostRequest(
-    //   "/restartStream",
-    //   {
-    //     devicePath: device,
-    //     stream: {
-    //       hostAddress,
-    //       port,
-    //       resolution,
-    //     },
-    //   },
-    //   xhr => {
-    //     const response = JSON.parse(xhr.response);
-    //     setPort(response.port);
-    //   }
-    // );
-  };
-
-  useEffect(() => {
-    restartStream();
-  }, [resolution]);
-
-  useEffect(() => {
-    // if (udp) {
-    //   makePostRequest(
-    //     "/addStream",
-    //     {
-    //       devicePath: device,
-    //       stream: {
-    //         hostAddress,
-    //         port,
-    //       },
-    //     },
-    //     xhr => {
-    //       const response = JSON.parse(xhr.response);
-    //       setPort(response.port);
-    //     }
-    //   );
-    // } else {
-    //   makePostRequest("/removeStream", {
-    //     devicePath: device,
-    //   })
-    //   ;
-    // }
-  }, [udp]);
-
   return (
-    <FormGroup>
-      <DeviceSwitch
-        onChange={(e) => {
-          setUDP(e.target.checked);
-        }}
-        checked={udp}
-        name='streamSwitch'
-        text='UDP Stream'
-      />
-      {udp ? (
-        <>
-          <TextField
-            label='address'
-            onChange={(e) => {
-              setHostAddress(e.target.value);
-            }}
-            variant='standard'
-            value={hostAddress}
-          />
-          <TextField
-            label='port'
-            onChange={(e) => {
-              setPort(Number(e.target.value));
-            }}
-            variant='standard'
-            type='number'
-            value={port}
-          />
-          <div style={{ marginTop: "20px" }}>
-            <ResolutionMenu
-              onResolutionChange={(res) => {
-                setResolution(res);
-              }}
-              defaultResolution={resolution}
-              resolutions={
-                props.device.cameras.filter(
-                  (camera) =>
-                    props.device.stream.device_path === camera.device_path
-                )[0].formats[0].sizes
-              }
-            />
-          </div>
-          <Button
-            color='grey'
-            variant='contained'
-            style={{ marginTop: "20px" }}
-            onClick={restartStream}
-          >
-            Restart Stream
-          </Button>
-        </>
-      ) : undefined}
-    </FormGroup>
-  );
+    <>
+    </>
+  )
 };
 
 interface Control {
