@@ -25,7 +25,7 @@ def install_missing_packages():
 
     match platform.system():
         case "Windows":
-            pip_command = "pip"
+            pip_command = ["runas /user:Administrator", "python", "-m", "pip" "install"]
             required_packages.append(
                 {
                     "module_name": "wmi",
@@ -33,9 +33,9 @@ def install_missing_packages():
                 },
             )
         case "Linux":
-            pip_command = "pip3"
+            pip_command = ["sudo", "python3", "-m", "pip", "install"]
         case "Darwin":
-            pip_command = "pip3"
+            pip_command = ["sudo", "python3", "-m", "pip", "install"]
             required_packages.append(
                 {
                     "module_name": "plistlib",
@@ -50,20 +50,22 @@ def install_missing_packages():
         except ImportError:
             missing_packages.append(package["pip_name"])
     if missing_packages:
-        print(f"Installing missing packages using {pip_command}:")
+        print("Installing missing packages:")
         for package in missing_packages:
+            print(
+                f"{package} - Installing missing packages using {' '.join(pip_command + [package])}:"
+            )
             print(f" - {package}")
             if platform.system().lower() == "windows":
                 subprocess.check_call(
                     [
-                        "runas /user:Administrator",
                         pip_command,
-                        "install",
                         package,
+                        # "--trusted-host",
                     ]
                 )
             else:
-                subprocess.check_call(["sudo", pip_command, "install", package])
+                subprocess.check_call(" ".join(pip_command + [package]))
         print("All missing packages have been installed.")
     else:
         print("All required packages are already installed.")
