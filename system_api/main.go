@@ -71,6 +71,7 @@ func handleWifiScan(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// Log the error
 		Log.Error(fmt.Sprintf("Error getting the connected wifi network: %v", err))
+		json.NewEncoder(w).Encode([]string{})
 		return
 	} else {
 		// Send the response content convert encoded in utf-8
