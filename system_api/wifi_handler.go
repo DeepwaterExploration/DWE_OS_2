@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os/exec"
 	"strings"
 	"time"
@@ -13,7 +14,7 @@ type WifiHandler struct {
 	WPASupplicant   *wireless.Client
 	TimeoutDuration time.Duration
 	InterfaceName   string
-	ScanResults     []wireless.AP
+	ScanResults     []ScannedWifiNetwork
 	SavedResults    []SavedWifiNetwork
 }
 
@@ -48,7 +49,7 @@ func (wh *WifiHandler) init() error {
 	// Set the interface name
 	wh.InterfaceName = interfaces[0]
 
-	wh.ScanResults = []wireless.AP{}
+	wh.ScanResults = []ScannedWifiNetwork{}
 	wh.SavedResults = []SavedWifiNetwork{}
 
 	wh.WPASupplicant, err = wireless.NewClient(wh.InterfaceName)
@@ -74,24 +75,109 @@ func (wh *WifiHandler) connect(socket string) error {
 	return nil
 }
 
-func (wh *WifiHandler) NetworkScan() ([]wireless.AP, error) {
-	aps, err := wh.WPASupplicant.Scan()
+func (wh *WifiHandler) NetworkScan() ([]ScannedWifiNetwork, error) {
+	scanResults, err := wh.WPASupplicant.Scan()
 	if err != nil {
 		return nil, err
 	}
-	return aps, nil
+
+	var scannedNetworks []ScannedWifiNetwork
+
+	if len(errs) > 0 {
+		for _, err := range errs {
+			log.Printf("Error getting scan results: %v", err)
+		}
+
+		return nil, fmt.Errorf("Error getting scan results: %v", errs)
+	}
+
+	for _, network := range scanResults {
+		// check if the network is secure
+		joinedFlags := strings.Join(network.Flags, "")
+		securityTypes := []SecurityType{}
+		if strings.Contains(joinedFlags, "WPA") {
+			securityTypes = append(securityTypes, WPA)
+		}
+		if strings.Contains(joinedFlags, "WEP") {
+			securityTypes = append(securityTypes, WEP)
+		}
+		if strings.Contains(joinedFlags, "WSN") {
+			securityTypes = append(securityTypes, WSN)
+		}
+
+		scannedNetworks = append(scannedNetworks, ScannedWifiNetwork{
+			SSID:           network.SSID,
+			Frequency:      network.Frequency,
+			MacAddress:     network.BSSID,
+			Secure:         len(securityTypes) > 0,
+			SecurityType:   securityTypes,
+			SignalStrength: network.Signal,
+		})
+	}
+
+	wh.ScanResults = scannedNetworks
+
+	return scannedNetworks, nil
 }
 
 func (wh *WifiHandler) NetworkStatus() (*NetworkStatus, error) {
-	return nil, nil
+	result, err := wh.WPASupplicant.Status()
+	if err != nil {
+		return nil, fmt.Errorf("Error getting status: %v", err)
+	}
+
+	return &NetworkStatus{
+		WPAState: result.WpaState,
+		KeyMgmt:  result.KeyManagement,
+		IPAddr:   result.IPAddress,
+		SSID:     result.SSID,
+		Address:  result.Address,
+		BSSID:    result.BSSID,
+		// Freq:     result.,
+	}, nil
 }
 
 func (wh *WifiHandler) NetworkSaved() ([]SavedWifiNetwork, error) {
-	return nil, nil
+	savedResults, err := wh.WPASupplicant.Networks()
+	if err != nil {
+		return nil, fmt.Errorf("Error listing connected networks: %v", err)
+	}
+
+	var savedNetworks []SavedWifiNetwork
+
+	for _, network := range savedResults {
+		savedNetworks = append(savedNetworks, SavedWifiNetwork{
+			SSID:       network.SSID,
+			MacAddress: network.BSSID,
+			NetworkID:  network.IDStr,
+			Connected:  strings.Contains(strings.Join(network.Flags, ""), "CURRENT"),
+		})
+	}
+
+	wh.SavedResults = savedNetworks
+
+	return savedNetworks, nil
 }
 
 func (wh *WifiHandler) NetworkConnected() ([]SavedWifiNetwork, error) {
-	return nil, nil
+	savedResults, err := wh.WPASupplicant.Networks()
+	if err != nil {
+		return nil, fmt.Errorf("Error listing connected networks: %v", err)
+	}
+
+	var connectedNetworks []SavedWifiNetwork
+
+	for _, network := range savedResults {
+		if strings.Contains(strings.Join(network.Flags, ""), "CURRENT") {
+			connectedNetworks = append(connectedNetworks, SavedWifiNetwork{
+				SSID:       network.SSID,
+				MacAddress: network.BSSID,
+				NetworkID:  network.IDStr,
+				Connected:  true,
+			})
+		}
+	}
+	return connectedNetworks, nil
 }
 
 func NetworkToggle(wifiOn bool) (bool, error) {
