@@ -71,6 +71,7 @@ func handleWifiScan(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// Log the error
 		Log.Error(fmt.Sprintf("Error getting the connected wifi network: %v", err))
+		json.NewEncoder(w).Encode(wifiHandler.ScanResults)
 		return
 	} else {
 		// Send the response content convert encoded in utf-8
@@ -136,7 +137,10 @@ func toggleWifiStatus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Build the response content as a JSON struct
-	responseContent, err := NetworkToggle(request.WifiState)
+	result, err := NetworkToggle(request.WifiState)
+
+	var response WifiStatusResponse
+	response.Enabled = result
 
 	// Check if there was an error
 	if err != nil {
@@ -145,7 +149,7 @@ func toggleWifiStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		// Send the response content convert encoded in utf-8
-		json.NewEncoder(w).Encode(responseContent)
+		json.NewEncoder(w).Encode(response)
 	}
 }
 
@@ -338,7 +342,7 @@ func main() {
 
 	// Set up the server address and port
 	const port = 8080
-	const host = "localhost"
+	const host = ""
 
 	// Start the server
 	Log.Info(fmt.Sprintf("Server started at http://%s:%d.", host, port))
