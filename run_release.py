@@ -34,7 +34,7 @@ if __name__ == '__main__':
     frontend_thread.start()
 
     system_api_process = subprocess.Popen(
-        ['go', 'run', '.'], cwd='./system_api')
+        ['./system_api'], cwd='./system_api')
 
     def exit_clean(sig, frame):
         print('Exiting')

@@ -6,7 +6,9 @@ API and driver rewrite of DWE OS
 
 To install for any *supported* Linux system, run the following command: 
 
-`curl -s https://raw.githubusercontent.com/DeepwaterExploration/DWE_OS_2/main/install.sh | sudo bash -s`
+```sh
+curl -s https://raw.githubusercontent.com/DeepwaterExploration/DWE_OS_2/main/install.sh | sudo bash -s
+```
 
 ## Building for development
 
@@ -17,11 +19,12 @@ git clone https://github.com/DeepwaterExploration/DWE_OS_2.git
 cd DWE_OS_2
 ```
 
-3. Build the project
+2. Build the project
 
 ```sh
-cd frontend
-npm install
-cd ..
-./create_release.sh
+./build_project.sh
+```
+3. Run the project
+```sh
+./run_release.sh
 ```
