@@ -30,7 +30,6 @@ func NewWifiHandler() (*WifiHandler, error) {
 func (wh *WifiHandler) init() error {
 	// Establish a socket connection with the wifi manager
 	interfaces := wireless.Interfaces()
-	fmt.Println(interfaces)
 
 	if len(interfaces) == 0 {
 		return fmt.Errorf("No valid wifi interfaces found")
