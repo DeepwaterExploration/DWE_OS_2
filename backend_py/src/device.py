@@ -150,7 +150,12 @@ def is_ehd(device_info: DeviceInfo):
         device_info.pid == 0x6366 and
         len(device_info.device_paths) == 4
     )
-
+def is_stellarhd(device_info: DeviceInfo):
+    return (
+        device_info.vid == 3141 and 
+        (device_info.pid == 25448 or
+        device_info.pid == 25447) # follower or leader
+    )
 
 @dataclass
 class OptionValues:
@@ -325,3 +330,57 @@ class EHDDevice:
                             MenuItem(i, menu_item))
 
             self.controls.append(control)
+
+
+class psuedoOption:
+    def __init__(self, value) -> None:
+        self.value = value
+    def get_value(self):
+        return self.value
+
+class StellarHD:
+    name: str = "Stellar HD"
+    manufacturer: str = 'DeepWater Exploration Inc.'
+
+    def __init__(self, device_info: DeviceInfo) -> None:
+        self._options: dict[str, Option] = {}
+
+        self.options = OptionValues(
+            10000000,
+            29,
+            H264Mode.MODE_CONSTANT_BITRATE
+        )
+        self.cameras: List[Camera] = []
+        for device_path in device_info.device_paths:
+            self.cameras.append(Camera(device_path))
+
+        self.device_info = device_info
+        self.vid = device_info.vid
+        self.pid = device_info.pid
+        self.bus_info = device_info.bus_info
+        self.nickname = ''
+        self.controls = []
+        self.stream = Stream()
+        self.stream.encode_type = StreamEncodeTypeEnum.MJPEG # force override stream method
+        self.v4l2_device = Device(self.cameras[0].path)
+        self.v4l2_device.open()
+    def configure_stream(self, encode_type: StreamEncodeTypeEnum, width: int, height: int, interval: Interval, stream_type: StreamTypeEnum, stream_endpoints: List[StreamEndpoint] = []):
+        camera: Camera = None
+        match encode_type:
+            case StreamEncodeTypeEnum.H264:
+                camera = self.cameras[0]
+            case StreamEncodeTypeEnum.MJPEG:
+                camera = self.cameras[0]
+            case _:
+                raise Exception()
+
+        self.stream.device_path = camera.path
+        self.stream.width = width
+        self.stream.height = height
+        self.stream.interval = interval
+        self.stream.endpoints = stream_endpoints
+        self.stream.encode_type = encode_type
+        self.stream.stream_type = stream_type
+        self.stream.configured = True
+    def load_settings(self, saved_device: SavedDevice):
+        self.stream.start()

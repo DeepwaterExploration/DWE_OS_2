@@ -5,7 +5,7 @@ import threading
 import re
 
 from .schemas import *
-from .device import EHDDevice, is_ehd
+from .device import EHDDevice, StellarHD, is_ehd, is_stellarhd
 from .settings import SettingsManager
 from .broadcast_server import BroadcastServer, Message
 from .enumeration import list_devices
@@ -41,6 +41,7 @@ class DeviceManager:
         Compile and sort a list of devices for jsonifcation
         '''
         device_list = DeviceSchema().dump(self.devices, many=True)
+        print(device_list)
         key_pattern = re.compile(r'^(\D+)(\d+)$')
 
         def key(item: Dict):
@@ -158,18 +159,29 @@ class DeviceManager:
         logging.error(f'Device not found: {bus_info}')
         return None
 
+
+    def _get_device_from_info(self,device_info):
+        device=None
+        if not (is_ehd(device_info) or is_stellarhd(device_info)):
+            return device
+        try:
+            if (is_ehd(device_info)):
+                device = EHDDevice(device_info)
+            else:
+                device = StellarHD(device_info)
+                print("Stellar")
+        except Exception as e:
+            logging.warn(e)
+        return device
+
+
     def _monitor(self):
         # monitor devices for changes
         devices_info = list_devices()
 
         for device_info in devices_info:
-            if not is_ehd(device_info):
-                continue
-            device = None
-            try:
-                device = EHDDevice(device_info)
-            except Exception as e:
-                logging.warn(e)
+            device = self._get_device_from_info(device_info)
+            if not device:
                 continue
             # append the device to the device list
             self.devices.append(device)
@@ -189,13 +201,8 @@ class DeviceManager:
 
             # add the new devices
             for device_info in new_devices:
-                if not is_ehd(device_info):
-                    continue
-                device = None
-                try:
-                    device = EHDDevice(device_info)
-                except Exception as e:
-                    logging.warning(e)
+                device = self._get_device_from_info(device_info)
+                if not device:
                     continue
                 # append the device to the device list
                 self.devices.append(device)
