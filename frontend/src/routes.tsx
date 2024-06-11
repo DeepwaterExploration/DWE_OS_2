@@ -11,6 +11,7 @@ import {
     StorageOutlined as StorageOutlinedIcon,
     SystemUpdateAlt as SystemUpdateAltIcon,
     VideoCameraBackOutlined as VideoCameraBackOutlinedIcon,
+    VideoFileOutlined as VideoFileOutlinedIcon,
 } from "@mui/icons-material";
 import { Box } from "@mui/material";
 
@@ -19,6 +20,7 @@ import Updater from "./layouts/updater";
 import WifiPage from "./layouts/wifi";
 import TaskMonitor from "./layouts/task_monitor";
 import { RouteItem, routeType } from "./types/types";
+import Files from "./layouts/flies";
 
 export const routes: RouteItem[] = [
     {
@@ -76,6 +78,17 @@ export const routes: RouteItem[] = [
         type: routeType.COLLAPSE,
         name: "Wired",
         key: "wired",
+        default: false,
+    },
+    {
+        route: "/files/",
+        component: <Files />,
+        exact: true,
+        icon: <VideoFileOutlinedIcon />,
+        category: "Files",
+        type: routeType.COLLAPSE,
+        name: "Files",
+        key: "Files",
         default: false,
     },
     {

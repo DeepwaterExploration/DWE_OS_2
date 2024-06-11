@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -146,7 +147,7 @@ func connectToWifi(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Failed to parse request body: %v", err), http.StatusBadRequest)
 		return
 	}
-	Log.Info(fmt.Sprintf("Attempting to connect to %s with password: %s", request.WifiSSID, request.WifiPassword));
+	Log.Info(fmt.Sprintf("Attempting to connect to %s with password: %s", request.WifiSSID, request.WifiPassword))
 
 	// Build the response content as a JSON struct
 	responseContent, err := wifiHandler.NetworkConnect(request.WifiSSID, request.WifiPassword)
@@ -297,6 +298,52 @@ func handleCPU(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(responseContent)
 	}
 }
+func handleVideo(w http.ResponseWriter, r *http.Request) {
+
+	// Set the response headers to indicate the content type
+	path := r.URL.Query().Get("path")
+	if path == "" {
+		path, err = os.UserHomeDir()
+		if err != nil {
+			Log.Error(fmt.Sprintf("Error getting the Video path: %v", err))
+			return
+		}
+	}
+	dwePath := path + "/.DWE"
+	videos := dwePath + "/videos"
+	universalJson := videos + "/videos.json"
+
+	_, err := os.ReadFile(universalJson)
+
+	if err != nil {
+		if os.IsNotExist(err) {
+			Log.Warn(fmt.Sprint("Creating file"))
+			os.Mkdir(dwePath, 0777)
+			os.Mkdir(videos, 0777)
+			file, err := os.OpenFile(universalJson, os.O_RDONLY|os.O_CREATE, 0777)
+			if err != nil {
+				return
+			}
+			empty := []byte("[]")
+			os.WriteFile(universalJson, empty, 0777)
+
+			file.Close()
+		} else {
+			Log.Error(fmt.Sprintf("Error getting the Video File: %v", err))
+			return
+		}
+	}
+	http.ServeFile(w, r, universalJson)
+
+}
+func serveVideo(w http.ResponseWriter, r *http.Request) {
+	url := r.URL.Query().Get("path")
+	if url == "" {
+		Log.Warn("Error serving video, no url provided")
+		return
+	}
+	http.ServeFile(w, r, url)
+}
 
 var wifiHandler *WifiHandler
 var err error
@@ -330,6 +377,8 @@ func main() {
 		r.HandleFunc("/restartMachine", restartMachine).Methods("POST")
 		r.HandleFunc("/getTemperature", handleGetTemperature).Methods("GET")
 		r.HandleFunc("/getCPU", handleCPU).Methods("GET")
+		r.HandleFunc("/videos", handleVideo).Methods("GET")
+		r.HandleFunc("/servevideo", serveVideo).Methods("GET")
 
 		// Create a new HTTP server with the CORS (Cross-Origin Resource Sharing) middleware enabled
 		corsOptions := handlers.CORS(

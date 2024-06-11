@@ -36,13 +36,12 @@ const CreateRouteItem: React.FC<CreateRouteItemProps> = (props) => {
                     fontWeight='bold'
                     sx={{
                         opacity: props.open ? 1 : 0,
-                        color: `${
-                            props.locationName.includes(
-                                props.category.toLowerCase()
-                            )
+                        color: `${props.locationName.includes(
+                            props.category.toLowerCase()
+                        )
                                 ? props.theme.palette.primary.main
                                 : "inherit"
-                        } !important`,
+                            } !important`,
                     }}
                 >
                     {props.category}
@@ -70,17 +69,17 @@ const CreateRouteItem: React.FC<CreateRouteItemProps> = (props) => {
                                         // If the route is also the default route
                                         route.default
                                             ? // If the current location matches the route or is the root
-                                              props.locationName ===
-                                                  route.route ||
-                                              props.locationName === "/"
+                                            props.locationName ===
+                                                route.route ||
+                                                props.locationName === "/"
                                                 ? props.theme.palette.primary
-                                                      .main
+                                                    .main
                                                 : "inherit"
                                             : // If the current location matches the route
                                             props.locationName === route.route
-                                            ? props.theme.palette.primary.main
-                                            : "inherit"
-                                    } !important`,
+                                                ? props.theme.palette.primary.main
+                                                : "inherit"
+                                        } !important`,
                                 }}
                             >
                                 <ListItemIcon
@@ -127,6 +126,9 @@ const NavigationItems: React.FC<NavigationItemsProps> = ({
     const communicationsRoutes = routes.filter(
         (route) => route.category === "Communications"
     );
+    const filesRoutes = routes.filter(
+        (route) => route.category === "Files"
+    );
     const optionsRoutes = routes.filter(
         (route) => route.category === "Options"
     );
@@ -144,6 +146,13 @@ const NavigationItems: React.FC<NavigationItemsProps> = ({
                 category='Communications'
                 locationName={locationName}
                 routes={communicationsRoutes}
+                open={open}
+                theme={theme}
+            />
+            <CreateRouteItem
+                category='Files'
+                locationName={locationName}
+                routes={filesRoutes}
                 open={open}
                 theme={theme}
             />
