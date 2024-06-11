@@ -1,6 +1,7 @@
 #!/bin/bash
 
 build_frontend() {
+  npm install typescript
   # Run TypeScript compiler
   npx tsc
   # Run Vite build

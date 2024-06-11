@@ -10,4 +10,6 @@ sh ./build_frontend.sh
 # build go backend
 cd ../system_api
 sh ./build_system_api.sh
+cd ../backend_py
+sh ./build.sh
 cd ..

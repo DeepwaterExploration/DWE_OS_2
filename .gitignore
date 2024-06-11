@@ -327,3 +327,4 @@ release.tar.gz
 **/device_settings.json
 .env
 release.tar.gz.1
+go*linux-*.tar.gz

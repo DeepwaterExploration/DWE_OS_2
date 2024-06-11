@@ -68,7 +68,7 @@
     "happy-dom": "^10.11.2",
     "postcss": "^8.4.29",
     "prettier": "^3.0.3",
-    "typescript": "^5.2.2",
+    "typescript": "^5.4.5",
     "vite": "^4.4.9",
     "vite-tsconfig-paths": "^4.2.0",
     "vitest": "^0.34.3"
