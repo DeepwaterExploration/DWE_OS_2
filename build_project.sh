@@ -1,5 +1,5 @@
 #!/bin/sh
-
+mkdir -p $HOME/.DWE/videos
 #install stuff from apt
 sh ./install_requirements.sh
 # create python enviroment
