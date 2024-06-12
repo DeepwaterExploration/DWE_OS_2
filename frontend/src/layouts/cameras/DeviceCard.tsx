@@ -455,7 +455,7 @@ const StreamOptions: React.FC<StreamOptionsProps> = (props) => {
                         />
                     </div>
                     <TextField
-                        sx={{ width: "50%" }}
+                        sx={{ width: "calc(50% - (2 * 5px))" }}
                         select
                         label='Resolution'
                         variant='outlined'
@@ -472,7 +472,7 @@ const StreamOptions: React.FC<StreamOptionsProps> = (props) => {
                         ))}
                     </TextField>
                     <TextField
-                        sx={{ width: "20%" }}
+                        sx={{ width: "calc(20% - (2 * 5px))" }}
                         select
                         label='FPS'
                         variant='outlined'
@@ -487,7 +487,7 @@ const StreamOptions: React.FC<StreamOptionsProps> = (props) => {
                         ))}
                     </TextField>
                     <TextField
-                        sx={{ width: "30%" }}
+                        sx={{ width: "calc(30% - (2 * 5px))" }}
                         select
                         label='Format'
                         variant='outlined'
