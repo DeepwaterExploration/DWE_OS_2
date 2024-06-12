@@ -1,12 +1,14 @@
 import {
     Device,
     PortInfo,
+    Recording,
     ReleaseList,
     Stream,
     StreamEndpoint,
     StreamFormat,
     encodeType,
     optionType,
+    videoData,
 } from "../types/types";
 
 const hostAddress: string = window.location.hostname;
@@ -441,6 +443,72 @@ export async function getNextPort(host: string): Promise<number> {
             "Content-Type": "application/json",
         },
     };
-    let res = await fetch(url, config);
+    const res = await fetch(url, config);
     return ((await res.json()) as PortInfo).port;
+}
+
+export async function startVideoSaving(
+    usbInfo: string,
+    streaming: Recording
+): Promise<videoData> {
+    const url = `${DEVICE_API_URL}/devices/start_recording`;
+    const data = {
+        ...streaming,
+        bus_info: usbInfo,
+    };
+    const config: RequestInit = {
+        mode: "cors",
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+        // credentials: "include",
+    };
+
+    return await fetch(url, config)
+        // Process the response data
+        .then((response: Response) => {
+            if (!response.ok) {
+                throw new Error("Failed to restart stream");
+            }
+            return response.json();
+        })
+        .then((data: videoData) => {
+            console.log(data);
+            return data;
+        })
+        .catch((error: Error) => {
+            console.log("Failed to restart stream");
+            console.error(error);
+            return { startTime: 0 } as videoData;
+        });
+}
+
+export async function stopVideoSaving(usbInfo: string): Promise<void> {
+    const url = `${DEVICE_API_URL}/devices/stop_recording`;
+    const data = {
+        bus_info: usbInfo,
+    };
+    const config: RequestInit = {
+        mode: "cors",
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+        // credentials: "include",
+    };
+
+    return await fetch(url, config)
+        // Process the response data
+        .then((response: Response) => {
+            if (!response.ok) {
+                throw new Error("Failed to restart stream");
+            }
+        })
+        .catch((error: Error) => {
+            console.log("Failed to restart stream");
+            console.error(error);
+        });
 }

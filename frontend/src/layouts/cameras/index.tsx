@@ -1,11 +1,16 @@
 import Grid from "@mui/material/Grid";
 import React, { useEffect, useState } from "react";
+import { io } from "socket.io-client";
 
 import DeviceCard from "./DeviceCard";
-import { Device } from "../../types/types";
-import { getDevices, DEVICE_API_WS, DEVICE_API_URL } from "../../utils/api";
+import {
+    CameraInterval,
+    Device,
+    Recording,
+    StreamFormat,
+} from "../../types/types";
+import { DEVICE_API_URL, DEVICE_API_WS, getDevices } from "../../utils/api";
 
-import { io } from "socket.io-client";
 
 const hash = function (str: string) {
     let hash = 0,
@@ -30,8 +35,8 @@ interface DeviceRemovedInfo {
 }
 
 const deserializeMessage = (message_str: string) => {
-    let parts = message_str.split(": ");
-    let message: Message = {
+    const parts = message_str.split(": ");
+    const message: Message = {
         event_name: parts[0],
         data: JSON.parse(message_str.substring(message_str.indexOf(": ") + 1)),
     };
@@ -75,11 +80,25 @@ const CamerasPage: React.FC = () => {
         // Code to run once when the component is defined
         getDevices().then((devices) => {
             console.log("Devices: ", devices);
+            devices.map((device) => {
+                device.recording = {
+                    encode_type: "H264",
+                    format: {
+                        width: 1920,
+                        height: 1080,
+                        interval: {
+                            numerator: 1,
+                            denominator: 30,
+                        } as CameraInterval,
+                    } as StreamFormat,
+                } as Recording;
+                return device;
+            });
             addDevices(devices);
         });
 
         websocket.addEventListener("message", (e) => {
-            let message = deserializeMessage(e.data);
+            const message = deserializeMessage(e.data);
             console.log(message.data);
             switch (message.event_name) {
                 case "device_added":
@@ -121,8 +140,8 @@ const CamerasPage: React.FC = () => {
       })} */}
             {exploreHD_cards.sort((a, b) => {
                 const regex = /(\/dev\/video)(\d+)/;
-                let pathA = a.props.device.cameras[0].path;
-                let pathB = b.props.device.cameras[0].path;
+                const pathA = a.props.device.cameras[0].path;
+                const pathB = b.props.device.cameras[0].path;
                 return (
                     Number(regex.exec(pathA)![2]) -
                     Number(regex.exec(pathB)![2])

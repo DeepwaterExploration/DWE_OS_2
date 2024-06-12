@@ -1,4 +1,12 @@
 import {
+    SignalWifi0Bar,
+    SignalWifi1Bar,
+    SignalWifi2Bar,
+    SignalWifi3Bar,
+    SignalWifi4Bar,
+} from "@mui/icons-material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import {
     Accordion,
     AccordionSummary,
     Avatar,
@@ -17,19 +25,12 @@ import {
     TextField,
     Typography,
 } from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-
-import {
-    SignalWifi0Bar,
-    SignalWifi1Bar,
-    SignalWifi2Bar,
-    SignalWifi3Bar,
-    SignalWifi4Bar,
-} from "@mui/icons-material";
-import { WifiStatus, ScannedWifiNetwork } from "./types";
-import { useState } from "react";
-import { connectToWifi, disconnectFromWifi, getWifiStatus } from "./api";
 import { useSnackbar } from "notistack";
+import { useState } from "react";
+
+import { connectToWifi, disconnectFromWifi, getWifiStatus } from "./api";
+import { ScannedWifiNetwork, WifiStatus } from "./types";
+
 
 export interface SignalIconProps {
     signal_strength: number;

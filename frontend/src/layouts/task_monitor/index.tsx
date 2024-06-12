@@ -4,9 +4,9 @@ import React, { useEffect, useState } from "react";
 import { getCPUInfo, getTemperatureInfo } from "./api";
 import CPUCard from "./CPUCard";
 import DiskCard from "./DiskCard";
+import TemperatureCard from "./TemperatureCard";
 import { DiskInfo, MemoryInfo } from "./types";
 // import MemoryCard from "./MemoryCard";
-import TemperatureCard from "./TemperatureCard";
 import { CPUInfo, TemperatureInfo } from "./types";
 
 const TaskMonitor: React.FC = () => {

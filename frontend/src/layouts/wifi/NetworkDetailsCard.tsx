@@ -1,4 +1,5 @@
 import { Card, CardHeader, Typography } from "@mui/material";
+
 import { WifiStatus } from "./types";
 
 export interface NetworkDetailsCardProps {

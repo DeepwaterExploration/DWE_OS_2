@@ -2,9 +2,9 @@ import { Grid } from "@mui/material";
 import React, { useEffect, useState } from "react";
 
 import { getAvailableWifi, getWifiStatus } from "./api";
-import NetworkSettingsCard from "./NetworkSettings";
-import { WifiStatus, ScannedWifiNetwork } from "./types";
 import NetworkDetailsCard from "./NetworkDetailsCard";
+import NetworkSettingsCard from "./NetworkSettings";
+import { ScannedWifiNetwork, WifiStatus } from "./types";
 
 const Wifi: React.FC = () => {
     const [currentNetwork, setCurrentNetwork] = useState({} as WifiStatus);

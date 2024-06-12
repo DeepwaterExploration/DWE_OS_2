@@ -14,6 +14,7 @@ import {
     Typography,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
+
 import { Release } from "../../types/types";
 import { getReleases, installUpdate } from "../../utils/api";
 

@@ -25,6 +25,8 @@ import {
     MenuItem,
     Slider,
     Switch,
+    Tab,
+    Tabs,
     TextField,
     Typography,
 } from "@mui/material";
@@ -51,6 +53,8 @@ import {
     setDeviceNickname,
     setExploreHDOption,
     setUVCControl,
+    startVideoSaving,
+    stopVideoSaving,
     unconfigureStream,
 } from "../../utils/api";
 
@@ -238,7 +242,26 @@ const DeviceOptions: React.FC<DeviceOptionsProps> = (props) => {
 interface StreamOptionsProps {
     device: Device;
 }
+interface TabPanelProps {
+    children?: React.ReactNode;
+    index: number;
+    value: number;
+}
+function TabPanel(props: TabPanelProps) {
+    const { children, value, index, ...other } = props;
 
+    return (
+        <div
+            role='tabpanel'
+            hidden={value !== index}
+            id={`simple-tabpanel-${index}`}
+            aria-labelledby={`simple-tab-${index}`}
+            {...other}
+        >
+            {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+        </div>
+    );
+}
 const StreamOptions: React.FC<StreamOptionsProps> = (props) => {
     const [stream, setStream] = useState(props.device.stream.configured);
 
@@ -246,6 +269,34 @@ const StreamOptions: React.FC<StreamOptionsProps> = (props) => {
     const [port, setPort] = useState(5600);
     const [ipError, setIpError] = useState("");
     const [portError, setPortError] = useState("");
+
+    const [fileTime, setFileTime] = useState(0);
+    const [countName, setCountName] = useState("00:00:00");
+    const [recordingEncodeType, setRecordingEncodeType] = useState<encodeType>(
+        encodeType.MJPEG
+    );
+
+    const [tabPanel, setTabPanel] = React.useState(1);
+
+    setInterval(() => {
+        if (tabPanel === 2 && fileTime !== 0) {
+            const startTime = Date.parse(
+                new Date(fileTime * 1000) as unknown as string
+            );
+            const now = Date.parse(new Date() as unknown as string);
+            const delta = Math.abs(now - startTime);
+
+            const seconds = Math.floor((delta / 1000) % 60);
+            const minutes = Math.floor((delta / 1000 / 60) % 60);
+            const hours = Math.floor((delta / 1000 / 60 / 60) % 24);
+
+            setCountName(() => {
+                return `${("0" + hours).slice(-2)}:${("0" + minutes).slice(
+                    -2
+                )}:${("0" + seconds).slice(-2)}`;
+            });
+        }
+    }, 1000);
 
     const { enqueueSnackbar } = useSnackbar();
 
@@ -367,209 +418,285 @@ const StreamOptions: React.FC<StreamOptionsProps> = (props) => {
                 width: "100%",
             }}
         >
-            <DeviceSwitch
-                onChange={(e) => {
-                    setStream(e.target.checked);
+            <Tabs
+                value={tabPanel}
+                onChange={(_event: React.SyntheticEvent, newValue: number) => {
+                    setTabPanel(newValue);
                 }}
-                checked={stream}
-                name='streamSwitch'
-                text='Stream'
-            />
-            {stream ? (
-                <>
-                    <div style={styles.cardContent.div}>
-                        <TextField
-                            sx={{ width: "50%" }}
-                            select
-                            label='Resolution'
-                            variant='outlined'
-                            defaultValue='1920x1080'
-                            onChange={(selected) =>
-                                setResolution(selected.target.value)
-                            }
-                            size='small'
-                        >
-                            {RESOLUTIONS.map((resolution) => (
-                                <MenuItem key={resolution} value={resolution}>
-                                    {resolution}
-                                </MenuItem>
-                            ))}
-                        </TextField>
-                        <TextField
-                            sx={{ width: "20%" }}
-                            select
-                            label='FPS'
-                            variant='outlined'
-                            defaultValue='30'
-                            onChange={(selected) =>
-                                setFps(selected.target.value)
-                            }
-                            size='small'
-                        >
-                            {INTERVALS.map((interval) => (
-                                <MenuItem key={interval} value={interval}>
-                                    {interval}
-                                </MenuItem>
-                            ))}
-                        </TextField>
-                        <TextField
-                            sx={{ width: "30%" }}
-                            select
-                            label='Format'
-                            variant='outlined'
-                            defaultValue={
-                                props.device.stream.encode_type
-                                    ? props.device.stream.encode_type
-                                    : encodeType.H264
-                            }
-                            onChange={(selected) =>
-                                setEncodeFormat(
-                                    selected.target.value as encodeType
-                                )
-                            }
-                            size='small'
-                        >
-                            {ENCODERS.map((option) => (
-                                <MenuItem key={option} value={option}>
-                                    {option}
-                                </MenuItem>
-                            ))}
-                        </TextField>
+            >
+                <Tab label='Stream' value={1} />
+                <Tab label='Save' value={2} />
+            </Tabs>
+
+            <TabPanel value={tabPanel} index={1}>
+                <div style={styles.cardContent.div}>
+                    <div style={{ width: "100%" }}>
+                        <DeviceSwitch
+                            onChange={(e) => {
+                                setStream(e.target.checked);
+                            }}
+                            checked={stream}
+                            name='streamSwitch'
+                            text='Stream'
+                        />
                     </div>
-                    <Accordion
-                        defaultExpanded={endpoints.length > 0}
-                        style={{
-                            width: "100%",
+                    <TextField
+                        sx={{ width: "50%" }}
+                        select
+                        label='Resolution'
+                        variant='outlined'
+                        defaultValue='1920x1080'
+                        onChange={(selected) =>
+                            setResolution(selected.target.value)
+                        }
+                        size='small'
+                    >
+                        {RESOLUTIONS.map((resolution) => (
+                            <MenuItem key={resolution} value={resolution}>
+                                {resolution}
+                            </MenuItem>
+                        ))}
+                    </TextField>
+                    <TextField
+                        sx={{ width: "20%" }}
+                        select
+                        label='FPS'
+                        variant='outlined'
+                        defaultValue='30'
+                        onChange={(selected) => setFps(selected.target.value)}
+                        size='small'
+                    >
+                        {INTERVALS.map((interval) => (
+                            <MenuItem key={interval} value={interval}>
+                                {interval}
+                            </MenuItem>
+                        ))}
+                    </TextField>
+                    <TextField
+                        sx={{ width: "30%" }}
+                        select
+                        label='Format'
+                        variant='outlined'
+                        defaultValue={
+                            props.device.stream.encode_type
+                                ? props.device.stream.encode_type
+                                : encodeType.H264
+                        }
+                        onChange={(selected) =>
+                            setEncodeFormat(selected.target.value as encodeType)
+                        }
+                        size='small'
+                    >
+                        {ENCODERS.map((option) => (
+                            <MenuItem key={option} value={option}>
+                                {option}
+                            </MenuItem>
+                        ))}
+                    </TextField>
+                </div>
+                <Accordion
+                    defaultExpanded={endpoints.length > 0}
+                    style={{
+                        width: "100%",
+                    }}
+                >
+                    <AccordionSummary
+                        expandIcon={<ExpandMoreIcon />}
+                        aria-controls='panel2a-content'
+                        id='panel2a-header'
+                    >
+                        <Typography fontWeight='800'>
+                            Stream Endpoints
+                        </Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                        <Box
+                            sx={{
+                                backgroundColor: "background.paper",
+                            }}
+                        >
+                            {endpoints.length === 0 ? (
+                                <Typography
+                                    fontWeight='500'
+                                    style={{
+                                        width: "100%",
+                                        textAlign: "center",
+                                        padding: "25px",
+                                    }}
+                                >
+                                    No stream endpoint added
+                                </Typography>
+                            ) : (
+                                <List dense={true}>
+                                    {endpoints.map((endpoint) => {
+                                        return (
+                                            <ListItem
+                                                key={`${endpoint.host}:${endpoint.port}`}
+                                                secondaryAction={
+                                                    <IconButton
+                                                        edge='end'
+                                                        aria-label='delete'
+                                                        onClick={() => {
+                                                            setEndpoints(
+                                                                (
+                                                                    prevEndpoints
+                                                                ) =>
+                                                                    prevEndpoints.filter(
+                                                                        (e) =>
+                                                                            `${e.host}:${e.port}` !==
+                                                                            `${endpoint.host}:${endpoint.port}`
+                                                                    )
+                                                            );
+                                                        }}
+                                                    >
+                                                        <DeleteIcon />
+                                                    </IconButton>
+                                                }
+                                            >
+                                                <ListItemAvatar>
+                                                    <Avatar>
+                                                        <LinkedCameraIcon />
+                                                    </Avatar>
+                                                </ListItemAvatar>
+                                                <ListItemText
+                                                    primary={`IP Address: ${endpoint.host}`}
+                                                    secondary={`Port: ${endpoint.port}`}
+                                                />
+                                            </ListItem>
+                                        );
+                                    })}
+                                </List>
+                            )}
+                        </Box>
+                    </AccordionDetails>
+                </Accordion>
+                {/* Container for User Input and Interaction */}
+                <div style={styles.cardContent.div}>
+                    {/* IP Address input */}
+                    <TextField
+                        sx={styles.textField}
+                        label='IP Address'
+                        variant='outlined'
+                        size='small'
+                        value={host}
+                        onChange={(e) => setHost(e.target.value)}
+                        error={!!ipError}
+                        helperText={ipError}
+                    />
+                    {/* Port Input */}
+                    <TextField
+                        sx={styles.portField}
+                        label='Port'
+                        variant='outlined'
+                        size='small'
+                        value={port}
+                        onChange={(e) => setPort(parseInt(e.target.value))}
+                        error={!!portError}
+                        helperText={portError}
+                        type='number'
+                        inputProps={{ min: 1024, max: 65535 }} // Specify minimum and maximum values
+                    />
+                    {/* Add Stream Endpoint Button */}
+                    <IconButton
+                        sx={{
+                            width: "40px",
+                            height: "40px",
+                            color: "text.secondary",
+                            marginLeft: "-10px",
+                        }}
+                        onClick={() => {
+                            handleAddEndpoint();
                         }}
                     >
-                        <AccordionSummary
-                            expandIcon={<ExpandMoreIcon />}
-                            aria-controls='panel2a-content'
-                            id='panel2a-header'
-                        >
-                            <Typography fontWeight='800'>
-                                Stream Endpoints
-                            </Typography>
-                        </AccordionSummary>
-                        <AccordionDetails>
-                            <Box
-                                sx={{
-                                    backgroundColor: "background.paper",
-                                }}
-                            >
-                                {endpoints.length === 0 ? (
-                                    <Typography
-                                        fontWeight='500'
-                                        style={{
-                                            width: "100%",
-                                            textAlign: "center",
-                                            padding: "25px",
-                                        }}
-                                    >
-                                        No stream endpoint added
-                                    </Typography>
-                                ) : (
-                                    <List dense={true}>
-                                        {endpoints.map((endpoint) => {
-                                            return (
-                                                <ListItem
-                                                    key={`${endpoint.host}:${endpoint.port}`}
-                                                    secondaryAction={
-                                                        <IconButton
-                                                            edge='end'
-                                                            aria-label='delete'
-                                                            onClick={() => {
-                                                                setEndpoints(
-                                                                    (
-                                                                        prevEndpoints
-                                                                    ) =>
-                                                                        prevEndpoints.filter(
-                                                                            (
-                                                                                e
-                                                                            ) =>
-                                                                                `${e.host}:${e.port}` !==
-                                                                                `${endpoint.host}:${endpoint.port}`
-                                                                        )
-                                                                );
-                                                            }}
-                                                        >
-                                                            <DeleteIcon />
-                                                        </IconButton>
-                                                    }
-                                                >
-                                                    <ListItemAvatar>
-                                                        <Avatar>
-                                                            <LinkedCameraIcon />
-                                                        </Avatar>
-                                                    </ListItemAvatar>
-                                                    <ListItemText
-                                                        primary={`IP Address: ${endpoint.host}`}
-                                                        secondary={`Port: ${endpoint.port}`}
-                                                    />
-                                                </ListItem>
-                                            );
-                                        })}
-                                    </List>
-                                )}
-                            </Box>
-                        </AccordionDetails>
-                    </Accordion>
-                    {/* Container for User Input and Interaction */}
-                    <div style={styles.cardContent.div}>
-                        {/* IP Address input */}
-                        <TextField
-                            sx={styles.textField}
-                            label='IP Address'
-                            variant='outlined'
-                            size='small'
-                            value={host}
-                            onChange={(e) => setHost(e.target.value)}
-                            error={!!ipError}
-                            helperText={ipError}
-                        />
-                        {/* Port Input */}
-                        <TextField
-                            sx={styles.portField}
-                            label='Port'
-                            variant='outlined'
-                            size='small'
-                            value={port}
-                            onChange={(e) => setPort(parseInt(e.target.value))}
-                            error={!!portError}
-                            helperText={portError}
-                            type='number'
-                            inputProps={{ min: 1024, max: 65535 }} // Specify minimum and maximum values
-                        />
-                        {/* Add Stream Endpoint Button */}
-                        <IconButton
-                            sx={{
-                                width: "40px",
-                                height: "40px",
-                                color: "text.secondary",
-                                marginLeft: "-10px",
-                            }}
-                            onClick={() => {
-                                handleAddEndpoint();
-                            }}
-                        >
-                            <AddIcon />
-                        </IconButton>
-                    </div>
+                        <AddIcon />
+                    </IconButton>
+                </div>
+                <Button
+                    color='primary'
+                    variant='contained'
+                    onClick={() => {
+                        restartStream(props.device.bus_info).then(() => {
+                            enqueueSnackbar("Stream restarted", {
+                                variant: "info",
+                            });
+                        });
+                    }}
+                >
+                    Restart Stream
+                </Button>
+            </TabPanel>
+            <TabPanel value={tabPanel} index={2}>
+                {fileTime === 0 ? undefined : (
+                    <p
+                        style={{
+                            width: "100%",
+                            textAlign: "center",
+                            fontSize: "1.5em",
+                            fontWeight: "bold",
+                        }}
+                    >
+                        {countName}
+                    </p>
+                )}
+                <div style={styles.cardContent.divAligned}>
                     <Button
                         color='primary'
                         variant='contained'
+                        disabled={fileTime !== 0}
                         onClick={() => {
-                            restartStream(props.device.bus_info).then(() => {
-                                enqueueSnackbar("Stream restarted", {
+                            props.device.recording.encode_type =
+                                recordingEncodeType;
+                            startVideoSaving(
+                                props.device.bus_info,
+                                props.device.recording
+                            ).then((time) => {
+                                setCountName("00:00:00");
+                                setFileTime(() => time.startTime);
+                                enqueueSnackbar("Video Recording Started", {
                                     variant: "info",
                                 });
                             });
                         }}
                     >
-                        Restart Stream
+                        Start Recording
                     </Button>
-                </>
-            ) : undefined}
+                    <Button
+                        color='primary'
+                        variant='contained'
+                        disabled={fileTime === 0}
+                        onClick={() => {
+                            stopVideoSaving(props.device.bus_info).then(() => {
+                                setFileTime(() => 0);
+
+                                enqueueSnackbar("Video Recording Stopped", {
+                                    variant: "info",
+                                });
+                            });
+                        }}
+                    >
+                        Stop Recording
+                    </Button>
+                    <TextField
+                        sx={{ width: "30%" }}
+                        select
+                        label='Format'
+                        variant='outlined'
+                        value={recordingEncodeType}
+                        onChange={(selected) =>
+                            setRecordingEncodeType(
+                                () => selected.target.value as encodeType
+                            )
+                        }
+                        size='small'
+                    >
+                        {ENCODERS.map((option) => (
+                            <MenuItem key={option} value={option}>
+                                {option}
+                            </MenuItem>
+                        ))}
+                    </TextField>
+                </div>
+            </TabPanel>
         </FormGroup>
     );
 };
@@ -655,7 +782,7 @@ const CameraControls: React.FC<CameraControlsProps> = (props) => {
                                 }, [controlValue]);
 
                                 return (
-                                    <>
+                                    <React.Fragment key={name}>
                                         <span>
                                             {name}: {controlValueSlider}
                                         </span>
@@ -684,7 +811,7 @@ const CameraControls: React.FC<CameraControlsProps> = (props) => {
                                                 width: "calc(100% - 25px)",
                                             }}
                                         />
-                                    </>
+                                    </React.Fragment>
                                 );
                             }
                             case controlType.BOOLEAN: {
@@ -696,7 +823,7 @@ const CameraControls: React.FC<CameraControlsProps> = (props) => {
                                     VALUE_FALSE = 1;
                                 }
                                 let { name, control_id } = control;
-                                let { default_value } = control.flags;
+                                const { default_value } = control.flags;
                                 const value =
                                     control.value === VALUE_TRUE ? true : false;
                                 if (name.includes("White Balance")) {
@@ -722,7 +849,7 @@ const CameraControls: React.FC<CameraControlsProps> = (props) => {
                                 }, [controlValue]);
 
                                 return (
-                                    <>
+                                    <React.Fragment key={name}>
                                         <span>{name}</span>
                                         <Switch
                                             checked={controlValue}
@@ -730,9 +857,8 @@ const CameraControls: React.FC<CameraControlsProps> = (props) => {
                                                 setControlValue(!controlValue);
                                             }}
                                             name={`control-${control_id}`}
-                                            defaultChecked={value}
                                         />
-                                    </>
+                                    </React.Fragment>
                                 );
                             }
                             case controlType.MENU: {
@@ -781,7 +907,7 @@ const CameraControls: React.FC<CameraControlsProps> = (props) => {
                                 }, [controlValue]);
 
                                 return (
-                                    <>
+                                    <React.Fragment key={name}>
                                         <PopupState
                                             variant='popover'
                                             popupId={"" + control_id}
@@ -843,7 +969,7 @@ const CameraControls: React.FC<CameraControlsProps> = (props) => {
                                                 </>
                                             )}
                                         </PopupState>
-                                    </>
+                                    </React.Fragment>
                                 );
                             }
                         }

@@ -12,6 +12,7 @@ export interface Device {
     nickname: string;
     options: StreamOptions;
     stream: Stream;
+    recording: Recording;
 }
 
 export interface Camera {
@@ -89,6 +90,11 @@ export interface Stream {
     endpoints: StreamEndpoint[];
     format: StreamFormat;
     configured: boolean;
+}
+
+export interface Recording {
+    encode_type: encodeType;
+    format: StreamFormat;
 }
 
 /* If we ever need to add more compression formats, just add them here */
@@ -200,4 +206,8 @@ export interface Release {
 
 export interface ReleaseList {
     releases: Release[];
+}
+
+export interface videoData {
+    startTime: number;
 }

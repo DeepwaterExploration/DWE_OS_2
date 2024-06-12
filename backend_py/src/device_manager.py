@@ -10,7 +10,7 @@ from .settings import SettingsManager
 from .broadcast_server import BroadcastServer, Message
 from .enumeration import list_devices
 from .utils import list_diff
-
+from .recording import Saving
 
 class DeviceManager:
     '''
@@ -41,7 +41,6 @@ class DeviceManager:
         Compile and sort a list of devices for jsonifcation
         '''
         device_list = DeviceSchema().dump(self.devices, many=True)
-        print(device_list)
         key_pattern = re.compile(r'^(\D+)(\d+)$')
 
         def key(item: Dict):
@@ -125,7 +124,22 @@ class DeviceManager:
 
         self.settings_manager.save_device(device)
         return True
-
+    def start_file_saving(self, bus_info: str, stream_info: StreamInfoSchema) -> int:
+        '''Start file playback to defualt destination'''
+        device = self._find_device_with_bus_info(bus_info)
+        if not device:
+            return 0
+        
+        device.file_handler.encode_type = stream_info['encode_type']
+        device.file_handler.start()
+        return device.file_handler._time
+    def stop_file_saving(self, bus_info: str) -> str:
+        '''Start file playback to defualt destination'''
+        device = self._find_device_with_bus_info(bus_info)
+        if not device:
+            return ""
+        device.file_handler.stop()
+        return device.file_handler.path
     def set_device_nickname(self, bus_info: str, nickname: str) -> bool:
         '''
         Set a device nickname
@@ -169,7 +183,6 @@ class DeviceManager:
                 device = EHDDevice(device_info)
             else:
                 device = StellarHD(device_info)
-                print("Stellar")
         except Exception as e:
             logging.warn(e)
         return device

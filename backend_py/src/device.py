@@ -13,7 +13,7 @@ from .camera_helper_loader import *
 from .camera_types import *
 from .stream import *
 from .saved_types import *
-
+from .recording import Saving
 
 class Camera:
     '''
@@ -184,7 +184,9 @@ class EHDDevice:
         self.pid = device_info.pid
         self.bus_info = device_info.bus_info
         self.nickname = ''
+        self.cameraName = cameraName(model=self.name, nickname=self.nickname, id=self.bus_info)
         self.controls = []
+        self.file_handler = Saving(h264_streamer=self.cameras[2].path, mjpeg_streamer=self.cameras[0].path, cameraData=self.cameraName)
         self.stream = Stream()
         self.v4l2_device = Device(self.cameras[0].path)
         self.v4l2_device.open()

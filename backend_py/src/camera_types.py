@@ -73,3 +73,9 @@ class H264Mode(Enum):
     '''
     MODE_CONSTANT_BITRATE = 1
     MODE_VARIABLE_BITRATE = 2
+    
+@dataclass
+class cameraName:
+    model: str
+    nickname: str
+    id: str

@@ -16,11 +16,11 @@ import {
 import { Box } from "@mui/material";
 
 import CamerasPage from "./layouts/cameras";
+import Files from "./layouts/flies";
+import TaskMonitor from "./layouts/task_monitor";
 import Updater from "./layouts/updater";
 import WifiPage from "./layouts/wifi";
-import TaskMonitor from "./layouts/task_monitor";
 import { RouteItem, routeType } from "./types/types";
-import Files from "./layouts/flies";
 
 export const routes: RouteItem[] = [
     {

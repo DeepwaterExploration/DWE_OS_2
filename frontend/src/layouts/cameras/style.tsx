@@ -39,6 +39,14 @@ export const styles = {
             gap: "15px",
             marginTop: "20px",
             marginBottom: "20px",
+            flexWrap: "wrap",
+        },
+        divAligned: {
+            display: "flex",
+            gap: "15px",
+            marginTop: "20px",
+            marginBottom: "20px",
+            justifyContent: "center",
         },
     },
     textField: {

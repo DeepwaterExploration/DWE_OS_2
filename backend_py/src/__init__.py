@@ -14,7 +14,7 @@ from .stream import *
 from .settings import SettingsManager
 from .broadcast_server import BroadcastServer
 from .device_manager import DeviceManager
-from .saving import Saving
+from .recording import Saving
 import logging
 
 
@@ -53,7 +53,7 @@ def main():
             stream_info['bus_info'], stream_info)
 
         return jsonify({})
-
+    
     @app.route('/devices/unconfigure_stream', methods=['POST'])
     def unconfigure_stream():
         bus_info = StreamInfoSchema(only=['bus_info']).load(
@@ -62,6 +62,22 @@ def main():
         device_manager.uncofigure_device_stream(bus_info)
 
         return jsonify({})
+    @app.route('/devices/start_recording', methods=['POST'])
+    def configure_video():
+        stream_info = SaveInfoSchema().load(request.get_json())
+
+        stream_time = device_manager.start_file_saving(
+            stream_info['bus_info'], stream_info)
+
+        return jsonify({"startTime": stream_time})
+    @app.route('/devices/stop_recording', methods=['POST'])
+    def unconfigure_video():
+        stream_info = SaveInfoSchema(only=['bus_info']).load(request.get_json())
+
+        filePath = device_manager.stop_file_saving(
+            stream_info['bus_info'])
+
+        return jsonify({"path":filePath})
 
     @app.route('/devices/set_nickname', methods=['POST'])
     def set_nickname():

@@ -1,5 +1,5 @@
 import { SYSTEM_API_URL } from "../../../utils/api";
-import { WifiStatus, ScannedWifiNetwork } from "../types";
+import { ScannedWifiNetwork, WifiStatus } from "../types";
 
 // Begin GET Requests
 /**
@@ -80,9 +80,9 @@ export async function connectToWifi(
         }),
         // credentials: "include",
     };
-    let res = await fetch(url, config);
+    const res = await fetch(url, config);
     try {
-        let data = await res.json();
+        const data = await res.json();
         return true;
     } catch {
         return false;

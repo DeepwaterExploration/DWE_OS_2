@@ -168,6 +168,11 @@ class StreamInfoSchema(Schema):
     encode_type = fields.Enum(StreamEncodeTypeEnum)
     endpoints = fields.Nested(StreamEndpointSchema, many=True)
 
+class SaveInfoSchema(Schema):
+    bus_info = fields.Str()
+    encode_type = fields.Enum(StreamEncodeTypeEnum)
+    format = fields.Nested(
+        StreamSchema, only=['width', 'height', 'interval'])
 
 class DeviceNicknameSchema(Schema):
     bus_info = fields.Str()

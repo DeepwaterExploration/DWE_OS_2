@@ -114,6 +114,7 @@ export default function NavigationBar() {
     );
 
     const toggleTheme = () => {
+        window.dispatchEvent(new Event("themechanged"));
         const newTheme =
             theme.palette.mode === "dark"
                 ? dweTheme("light")

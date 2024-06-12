@@ -1,7 +1,6 @@
 import { SYSTEM_API_URL } from "../../../utils/api";
 import { FilesJson } from "../types";
 
-
 export async function getVideos(): Promise<FilesJson> {
     const url = `${SYSTEM_API_URL}/videos`;
     const config: RequestInit = {
@@ -26,5 +25,5 @@ export async function getVideos(): Promise<FilesJson> {
 }
 
 export function videoProxy(path: string) {
-    return `${SYSTEM_API_URL}/servevideo?path=${path}`
+    return `${SYSTEM_API_URL}/servevideo?path=${path}`;
 }
