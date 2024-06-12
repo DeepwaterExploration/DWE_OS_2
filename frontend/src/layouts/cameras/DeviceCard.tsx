@@ -287,6 +287,11 @@ const StreamOptions: React.FC<StreamOptionsProps> = (props) => {
             )
     }, [])
 
+    setInterval(() => recording_state(props.device.bus_info)
+        .then(
+            (ping) => setFileTime(ping.time)
+        ), 1000)
+
     setInterval(() => {
         if (tabPanel === 2 && fileTime !== 0) {
             const startTime = Date.parse(
@@ -698,6 +703,7 @@ const StreamOptions: React.FC<StreamOptionsProps> = (props) => {
                         }
                         size='small'
                     >
+                        <br />
                         {ENCODERS.map((option) => (
                             <MenuItem key={option} value={option}>
                                 {option}

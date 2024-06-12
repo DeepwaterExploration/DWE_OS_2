@@ -75,6 +75,7 @@ class Saving:
             self._process.kill()
             self._process.communicate()
         del self._process
+        self._time = 0
 
         os.chown(self.final_path, uid, gid) # Don't make our file sudo
 
