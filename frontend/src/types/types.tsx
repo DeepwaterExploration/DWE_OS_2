@@ -211,3 +211,8 @@ export interface ReleaseList {
 export interface videoData {
     startTime: number;
 }
+
+export interface recordingPing {
+    recording: boolean,
+    time: number
+}

@@ -49,6 +49,7 @@ import {
 import {
     configureStream,
     getNextPort,
+    recording_state,
     restartStream,
     setDeviceNickname,
     setExploreHDOption,
@@ -277,6 +278,14 @@ const StreamOptions: React.FC<StreamOptionsProps> = (props) => {
     );
 
     const [tabPanel, setTabPanel] = React.useState(1);
+
+
+    useEffect(() => {
+        recording_state(props.device.bus_info)
+            .then(
+                (ping) => setFileTime(ping.time)
+            )
+    }, [])
 
     setInterval(() => {
         if (tabPanel === 2 && fileTime !== 0) {
@@ -710,9 +719,9 @@ interface ControlState {
     control_id: number;
     name: string;
     setControlValue:
-        | ((value: number) => void)
-        | ((value: boolean) => void)
-        | ((value: string) => void);
+    | ((value: number) => void)
+    | ((value: boolean) => void)
+    | ((value: string) => void);
     default_value: number | string | boolean;
     type: controlType;
 }

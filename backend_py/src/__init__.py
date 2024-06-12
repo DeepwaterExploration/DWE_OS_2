@@ -70,6 +70,13 @@ def main():
             stream_info['bus_info'], stream_info)
 
         return jsonify({"startTime": stream_time})
+    @app.route('/devices/recording_state', methods=['POST'])
+    def get_video_state():
+        stream_info = SaveInfoSchema(only=['bus_info']).load(request.get_json())
+
+        recording = device_manager.get_is_recording(stream_info['bus_info'])
+
+        return jsonify(recording)
     @app.route('/devices/stop_recording', methods=['POST'])
     def unconfigure_video():
         stream_info = SaveInfoSchema(only=['bus_info']).load(request.get_json())

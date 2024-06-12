@@ -8,6 +8,7 @@ import {
     StreamFormat,
     encodeType,
     optionType,
+    recordingPing,
     videoData,
 } from "../types/types";
 
@@ -475,7 +476,6 @@ export async function startVideoSaving(
             return response.json();
         })
         .then((data: videoData) => {
-            console.log(data);
             return data;
         })
         .catch((error: Error) => {
@@ -512,3 +512,38 @@ export async function stopVideoSaving(usbInfo: string): Promise<void> {
             console.error(error);
         });
 }
+
+export async function recording_state(usbInfo: string): Promise<recordingPing> {
+    const url = `${DEVICE_API_URL}/devices/recording_state`;
+    const data = {
+        bus_info: usbInfo,
+    };
+    const config: RequestInit = {
+        mode: "cors",
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+        // credentials: "include",
+    };
+
+    return await fetch(url, config)
+        // Process the response data
+        .then((response: Response) => {
+            if (!response.ok) {
+                throw new Error("Failed to restart stream");
+            }
+            return response.json();
+        })
+        .then((data: recordingPing) => {
+            return data;
+        })
+        .catch((error: Error) => {
+            console.log("Failed to restart stream");
+            console.error(error);
+            return { recording: false, time: 0 } as recordingPing;
+        });
+}
+
+

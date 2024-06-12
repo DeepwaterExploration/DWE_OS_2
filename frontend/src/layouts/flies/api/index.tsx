@@ -23,7 +23,8 @@ export async function getVideos(): Promise<FilesJson> {
             return [] as FilesJson;
         });
 }
-
 export function videoProxy(path: string) {
     return `${SYSTEM_API_URL}/servevideo?path=${path}`;
 }
+
+
