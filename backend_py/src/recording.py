@@ -4,6 +4,8 @@ import signal
 import subprocess
 import os
 import time
+
+from .schemas import StreamSchema
 from .camera_types import *
 from datetime import datetime
 import grp
@@ -119,3 +121,9 @@ class Saving:
     def _build_sink(self):
         self.final_path = os.path.join(self.path, f'{datetime.fromtimestamp(self._time).strftime(self.strftime)}.{self._get_extension()}'.replace(" ",""))
         return f"filesink location={self.final_path}"
+    def set_customization(self, schema: StreamSchema):
+        self.width = schema['width']
+        self.height = schema['height']
+        temp_int = schema['interval']
+        self.interval.numerator = temp_int['numerator']
+        self.interval.denominator = temp_int['denominator']

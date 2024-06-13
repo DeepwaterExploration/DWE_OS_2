@@ -286,6 +286,8 @@ class EHDDevice:
                               saved_device.stream.endpoints)
         self.stream.configured = saved_device.stream.configured
         self.nickname = saved_device.nickname
+        self.cameraName.nickname = self.nickname
+        self.file_handler.cameraData = self.cameraName
         if self.stream.configured:
             self.stream.start()
 

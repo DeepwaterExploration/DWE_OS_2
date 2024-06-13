@@ -124,7 +124,7 @@ class DeviceManager:
 
         self.settings_manager.save_device(device)
         return True
-    def start_file_saving(self, bus_info: str, stream_info: StreamInfoSchema) -> int:
+    def start_file_saving(self, bus_info: str, stream_info: SaveInfoSchema) -> int:
         '''Start file playback to defualt destination'''
         device = self._find_device_with_bus_info(bus_info)
         if not device:
@@ -132,6 +132,7 @@ class DeviceManager:
         
         device.file_handler.encode_type = stream_info['encode_type']
         device.file_handler.strftime = stream_info['name']
+        device.file_handler.set_customization(stream_info['format'])
         device.file_handler.start()
         return device.file_handler._time
     def stop_file_saving(self, bus_info: str) -> str:

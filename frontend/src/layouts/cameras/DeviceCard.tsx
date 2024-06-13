@@ -318,6 +318,10 @@ const StreamOptions: React.FC<StreamOptionsProps> = (props) => {
     const [resolution, setResolution] = useState("1920x1080");
     const [encodeFormat, setEncodeFormat] = useState(encodeType.H264);
     const [fps, setFps] = useState("30");
+
+    const [recordingFps, setRecordingFps] = useState("30");
+    const [recordingResolution, setRecordingResolution] = useState("1920x1080");
+
     const [endpoints, setEndpoints] = useState<StreamEndpoint[]>(
         props.device.stream.endpoints ? props.device.stream.endpoints : []
     );
@@ -659,6 +663,7 @@ const StreamOptions: React.FC<StreamOptionsProps> = (props) => {
                         variant='contained'
                         disabled={fileTime !== 0}
                         onClick={() => {
+                            const [width, height] = recordingResolution.split("x").map((e: string) => parseInt(e))
                             props.device.recording.encode_type =
                                 recordingEncodeType;
                             props.device.recording.name = recordingName
@@ -667,6 +672,15 @@ const StreamOptions: React.FC<StreamOptionsProps> = (props) => {
                                 .replace("$DATE", "%F")
                                 .replace("$TIME", "%T")
                                 .replace("$EPOCH", "%s")
+                            props.device.recording.format = {
+                                width: width,
+                                height: height,
+                                interval: {
+                                    denominator: parseInt(recordingFps),
+                                    numerator: 1
+                                }
+
+                            }
                             startVideoSaving(
                                 props.device.bus_info,
                                 props.device.recording
@@ -688,6 +702,7 @@ const StreamOptions: React.FC<StreamOptionsProps> = (props) => {
                         onClick={() => {
                             stopVideoSaving(props.device.bus_info).then(() => {
                                 setFileTime(() => 0);
+                                setCountName("00:00:00");
 
                                 enqueueSnackbar("Video Recording Stopped", {
                                     variant: "info",
@@ -727,6 +742,42 @@ const StreamOptions: React.FC<StreamOptionsProps> = (props) => {
                             {ENCODERS.map((option) => (
                                 <MenuItem key={option} value={option}>
                                     {option}
+                                </MenuItem>
+                            ))}
+                        </TextField>
+                    </div>
+                    <div style={{ width: "100%", display: "flex", justifyContent: "space-evenly" }}>
+                        <TextField
+                            sx={{ width: "50%" }}
+                            select
+                            label='Resolution'
+                            variant='outlined'
+                            defaultValue='1920x1080'
+                            onChange={(selected) =>
+                                setRecordingResolution(selected.target.value)
+                            }
+                            size='small'
+                        >
+                            {RESOLUTIONS
+                                .filter((x) => parseInt(x.split("x")[0]) > 639) // gstreamer has difficulty streaming at low resolutions
+                                .map((resolution) => (
+                                    <MenuItem key={resolution} value={resolution}>
+                                        {resolution}
+                                    </MenuItem>
+                                ))}
+                        </TextField>
+                        <TextField
+                            sx={{ width: "45%" }}
+                            select
+                            label='FPS'
+                            variant='outlined'
+                            defaultValue='30'
+                            onChange={(selected) => setRecordingFps(selected.target.value)}
+                            size='small'
+                        >
+                            {INTERVALS.map((interval) => (
+                                <MenuItem key={interval} value={interval}>
+                                    {interval}
                                 </MenuItem>
                             ))}
                         </TextField>
