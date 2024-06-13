@@ -47,6 +47,7 @@ export const styles = {
             marginTop: "20px",
             marginBottom: "20px",
             justifyContent: "center",
+            flexWrap: "wrap"
         },
     },
     textField: {

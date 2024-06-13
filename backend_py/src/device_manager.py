@@ -131,6 +131,7 @@ class DeviceManager:
             return 0
         
         device.file_handler.encode_type = stream_info['encode_type']
+        device.file_handler.strftime = stream_info['name']
         device.file_handler.start()
         return device.file_handler._time
     def stop_file_saving(self, bus_info: str) -> str:

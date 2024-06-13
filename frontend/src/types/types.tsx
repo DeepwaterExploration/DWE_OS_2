@@ -95,6 +95,7 @@ export interface Stream {
 export interface Recording {
     encode_type: encodeType;
     format: StreamFormat;
+    name: string;
 }
 
 /* If we ever need to add more compression formats, just add them here */

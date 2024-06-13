@@ -3,6 +3,7 @@ import json
 import signal
 import subprocess
 import os
+import time
 from .camera_types import *
 from datetime import datetime
 import grp
@@ -76,7 +77,7 @@ class Saving:
             self._process.communicate()
         del self._process
         self._time = 0
-
+        time.sleep(0.01)
         os.chown(self.final_path, uid, gid) # Don't make our file sudo
 
     def __str__(self):
@@ -116,5 +117,5 @@ class Saving:
         elif self.encode_type == StreamEncodeTypeEnum.MJPEG:
             return f"{base} ! queue ! avimux"
     def _build_sink(self):
-        self.final_path = os.path.join(self.path, f'{datetime.fromtimestamp(self._time).strftime(self.strftime)}.{self._get_extension()}')
+        self.final_path = os.path.join(self.path, f'{datetime.fromtimestamp(self._time).strftime(self.strftime)}.{self._get_extension()}'.replace(" ",""))
         return f"filesink location={self.final_path}"

@@ -52,15 +52,42 @@ const CamerasPage: React.FC = () => {
         setExploreHD_cards((prevCards) => {
             return [
                 ...prevCards,
-                ...devices.map((device) => (
-                    <DeviceCard key={hash(device.bus_info)} device={device} />
-                )),
+                ...devices.map((device) => {
+                    device.recording = {
+                        encode_type: "H264",
+                        format: {
+                            width: 1920,
+                            height: 1080,
+                            interval: {
+                                numerator: 1,
+                                denominator: 30,
+                            } as CameraInterval,
+                        } as StreamFormat,
+                        name: "$CAMERA-$EPOCH"
+                    } as Recording;
+                    return (
+
+                        <DeviceCard key={hash(device.bus_info)} device={device} />
+                    )
+                }),
             ];
         });
     };
 
     const addDevice = (device: Device) => {
         setExploreHD_cards((prevCards) => {
+            device.recording = {
+                encode_type: "H264",
+                format: {
+                    width: 1920,
+                    height: 1080,
+                    interval: {
+                        numerator: 1,
+                        denominator: 30,
+                    } as CameraInterval,
+                } as StreamFormat,
+                name: "$CAMERA-$EPOCH"
+            } as Recording;
             return [
                 ...prevCards,
                 <DeviceCard key={hash(device.bus_info)} device={device} />,
@@ -91,6 +118,7 @@ const CamerasPage: React.FC = () => {
                             denominator: 30,
                         } as CameraInterval,
                     } as StreamFormat,
+                    name: "$CAMERA-$EPOCH"
                 } as Recording;
                 return device;
             });

@@ -276,6 +276,7 @@ const StreamOptions: React.FC<StreamOptionsProps> = (props) => {
     const [recordingEncodeType, setRecordingEncodeType] = useState<encodeType>(
         encodeType.MJPEG
     );
+    const [recordingName, setRecordingName] = useState("$CAMERA-$EPOCH");
 
     const [tabPanel, setTabPanel] = React.useState(1);
 
@@ -660,6 +661,12 @@ const StreamOptions: React.FC<StreamOptionsProps> = (props) => {
                         onClick={() => {
                             props.device.recording.encode_type =
                                 recordingEncodeType;
+                            props.device.recording.name = recordingName
+                                .replace("$NICKNAME", props.device.nickname)
+                                .replace("$CAMERA", props.device.device_info.device_name)
+                                .replace("$DATE", "%F")
+                                .replace("$TIME", "%T")
+                                .replace("$EPOCH", "%s")
                             startVideoSaving(
                                 props.device.bus_info,
                                 props.device.recording
@@ -690,26 +697,40 @@ const StreamOptions: React.FC<StreamOptionsProps> = (props) => {
                     >
                         Stop Recording
                     </Button>
-                    <TextField
-                        sx={{ width: "30%" }}
-                        select
-                        label='Format'
-                        variant='outlined'
-                        value={recordingEncodeType}
-                        onChange={(selected) =>
-                            setRecordingEncodeType(
-                                () => selected.target.value as encodeType
-                            )
-                        }
-                        size='small'
-                    >
-                        <br />
-                        {ENCODERS.map((option) => (
-                            <MenuItem key={option} value={option}>
-                                {option}
-                            </MenuItem>
-                        ))}
-                    </TextField>
+                    <div style={{ width: "100%", display: "flex", justifyContent: "space-evenly" }}>
+                        <TextField
+                            sx={{ width: "65%" }}
+                            label='Format'
+                            variant='outlined'
+                            value={recordingName}
+                            onChange={(selected) =>
+                                setRecordingName(
+                                    () => selected.target.value
+                                )
+                            }
+                            size='small'
+                        ></TextField>
+                        <TextField
+                            sx={{ width: "30%" }}
+                            select
+                            label='Format'
+                            variant='outlined'
+                            value={recordingEncodeType}
+                            onChange={(selected) =>
+                                setRecordingEncodeType(
+                                    () => selected.target.value as encodeType
+                                )
+                            }
+                            size='small'
+                        >
+                            <br />
+                            {ENCODERS.map((option) => (
+                                <MenuItem key={option} value={option}>
+                                    {option}
+                                </MenuItem>
+                            ))}
+                        </TextField>
+                    </div>
                 </div>
             </TabPanel>
         </FormGroup>
