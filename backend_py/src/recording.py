@@ -122,8 +122,16 @@ class Saving:
         self.final_path = os.path.join(self.path, f'{datetime.fromtimestamp(self._time).strftime(self.strftime)}.{self._get_extension()}'.replace(" ",""))
         return f"filesink location={self.final_path}"
     def set_customization(self, schema: StreamSchema):
-        self.width = schema['width']
-        self.height = schema['height']
-        temp_int = schema['interval']
-        self.interval.numerator = temp_int['numerator']
-        self.interval.denominator = temp_int['denominator']
+        try:
+            schema = StreamSchema().load(data=schema)
+        except:
+            return # invalid data
+        if "width" in schema:
+            self.width = schema['width']
+        if "height" in schema:
+            self.height = schema['height']
+        if "interval" in schema:
+            temp_int = schema['interval']
+            if "numerator" in schema["interval"] and "denominator" in schema['interval']:
+                self.interval.numerator = temp_int['numerator']
+                self.interval.denominator = temp_int['denominator']
