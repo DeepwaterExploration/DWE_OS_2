@@ -14,7 +14,7 @@ class Saving:
     h264_streamer: str = ""
     mjpeg_streamer: str = ""
     encode_type: StreamEncodeTypeEnum = StreamEncodeTypeEnum.H264
-    path: str = os.environ.get("HOME") + "/.DWE/videos"
+    path: str = os.path.join(os.environ.get("HOME"),".DWE","videos")
     strftime: str = "%F-%T"
     width: int = 1920
     height: int = 1080
