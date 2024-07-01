@@ -6,6 +6,7 @@
 // Import Material-UI components and icons
 import {
     Lightbulb as LightbulbIcon,
+    AssessmentOutlined as AssesmentOutlinedIcon,
     SettingsOutlined as SettingsOutlinedIcon,
     SignalWifi0BarOutlined as SignalWifi0BarOutlinedIcon,
     StorageOutlined as StorageOutlinedIcon,
@@ -20,6 +21,7 @@ import Files from "./layouts/flies";
 import TaskMonitor from "./layouts/task_monitor";
 import Updater from "./layouts/updater";
 import WifiPage from "./layouts/wifi";
+import Settings from "./layouts/settings";
 import { RouteItem, routeType } from "./types/types";
 
 export const routes: RouteItem[] = [
@@ -33,7 +35,7 @@ export const routes: RouteItem[] = [
         name: "Cameras",
         key: "cameras",
         default: true,
-    },
+    }, //list cameras
     {
         route: "/devices/lights",
         component: <Box />,
@@ -45,18 +47,18 @@ export const routes: RouteItem[] = [
         name: "Lights",
         key: "lights",
         default: false,
-    },
+    }, //list light (Currently none)
     {
         route: "/devices/task_monitor",
         component: <TaskMonitor />,
         exact: true,
-        icon: <SettingsOutlinedIcon />,
+        icon: <AssesmentOutlinedIcon />,
         category: "Devices",
         type: routeType.COLLAPSE,
         name: "Task Monitor",
         key: "task_monitor",
         default: false,
-    },
+    }, // monitor system processes (CPU, temp)
     {
         route: "/communications/wifi",
         component: <WifiPage />,
@@ -68,7 +70,7 @@ export const routes: RouteItem[] = [
         name: "WiFi",
         key: "wifi",
         default: false,
-    },
+    }, //monitor wireless processes and join other networks
     {
         route: "/communications/wired",
         component: <Box />,
@@ -79,7 +81,7 @@ export const routes: RouteItem[] = [
         name: "Wired",
         key: "wired",
         default: false,
-    },
+    }, // view wired connections (Not implemented)
     {
         route: "/files/",
         component: <Files />,
@@ -90,7 +92,7 @@ export const routes: RouteItem[] = [
         name: "Files",
         key: "Files",
         default: false,
-    },
+    }, //list saved videos from cameras
     {
         route: "/options/updater",
         component: <Updater />,
@@ -101,5 +103,16 @@ export const routes: RouteItem[] = [
         name: "Updater",
         key: "updater",
         default: false,
-    },
+    }, //allows user to update dweos
+    {
+        route: "/options/settings",
+        component: <Settings />,
+        exact: true,
+        icon: <SettingsOutlinedIcon />,
+        category: "Options",
+        type: routeType.COLLAPSE,
+        name: "Settings",
+        key: "settings",
+        default: false
+    }
 ];

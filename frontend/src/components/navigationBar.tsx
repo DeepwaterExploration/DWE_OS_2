@@ -158,7 +158,7 @@ export default function NavigationBar() {
                                 display='flex'
                                 flexDirection='row'
                                 alignItems='center'
-                                sx={{ width: "100%", gap: 2 }}
+                                sx={{ width: "100%", gap: 2, color: (theme.palette.mode === "dark") ? "#151515" : "#105F7E" }}
                             >
                                 <Box
                                     style={{ marginTop: "5px" }}
@@ -242,7 +242,7 @@ export default function NavigationBar() {
                                 )}
                             </IconButton>
                         </DrawerHeader>
-                        <List component='nav'>
+                        <List component='nav' style={{ paddingTop: "0px" }}>
                             <NavigationItems
                                 routes={routes}
                                 open={open}

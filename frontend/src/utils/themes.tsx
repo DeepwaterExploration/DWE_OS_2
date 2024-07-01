@@ -6,33 +6,33 @@ const themeOptions = (mode: "light" | "dark") => ({
         mode,
         ...(mode === "light"
             ? {
-                  // palette values for light mode
-                  // primary: "#FFFFFF",
-                  // secondary: "#CCCCCC",
-                  primary: {
-                      main: "#094860",
-                  },
-                  text: {
-                      primary: "#000000",
-                      secondary: "#696969",
-                      tertiary: "#746BAE",
-                  },
-              }
+                // palette values for light mode
+                // primary: "#FFFFFF",
+                // secondary: "#CCCCCC",
+                primary: {
+                    main: "#105F7E",
+                },
+                text: {
+                    primary: "#000000",
+                    secondary: "#696969",
+                    tertiary: "#746BAE",
+                },
+            }
             : {
-                  // // palette values for dark mode
-                  primary: {
-                      main: "#46BAE7",
-                  },
-                  background: {
-                      default: "#303030",
-                      paper: "#1E1E1E",
-                  },
-                  text: {
-                      primary: "#EEEEEE",
-                      secondary: "#CCCCCC",
-                      tertiary: "#46BAE7",
-                  },
-              }),
+                // // palette values for dark mode
+                primary: {
+                    main: "#46BAE7",
+                },
+                background: {
+                    default: "#303030",
+                    paper: "#1E1E1E",
+                },
+                text: {
+                    primary: "#EEEEEE",
+                    secondary: "#CCCCCC",
+                    tertiary: "#46BAE7",
+                },
+            }),
     },
     components: {
         MuiAppBar: {
@@ -47,9 +47,8 @@ const themeOptions = (mode: "light" | "dark") => ({
             styleOverrides: {
                 // Change the default color for the Toolbar component
                 root: {
-                    backgroundColor: `${
-                        mode === "light" ? "#094860" : "#1E1E1E"
-                    } !important`,
+                    backgroundColor: `${mode === "light" ? "#094860" : "#1E1E1E"
+                        } !important`,
                 },
             },
         },
@@ -57,9 +56,8 @@ const themeOptions = (mode: "light" | "dark") => ({
             styleOverrides: {
                 // Change the default color for the Drawer component
                 paper: {
-                    backgroundColor: `${
-                        mode === "light" ? "#CCCCCC" : "#000000"
-                    } !important`,
+                    backgroundColor: `${mode === "light" ? "#CCCCCC" : "#000000"
+                        } !important`,
                 },
             },
         },
@@ -112,5 +110,5 @@ const themeOptions = (mode: "light" | "dark") => ({
 });
 
 const dweTheme = (mode: "light" | "dark") => createTheme(themeOptions(mode));
-
+//define light/dark mode
 export default dweTheme;

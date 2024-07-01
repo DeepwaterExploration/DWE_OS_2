@@ -11,6 +11,7 @@ interface GetRoutesProps {
 }
 
 const GetRoutes: React.FC<GetRoutesProps> = (props): ReactNode => {
+    // addd all the 
     return (
         <Routes>
             <Route

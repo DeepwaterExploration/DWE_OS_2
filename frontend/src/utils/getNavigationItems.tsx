@@ -22,6 +22,11 @@ interface CreateRouteItemProps {
     theme: any;
 }
 
+/**
+ * 
+ * @param props - Includes the catergory key, name (host), list of routes, and information about state (being open) and theme
+ * @returns a list subsection that includes the provided route items
+ */
 const CreateRouteItem: React.FC<CreateRouteItemProps> = (props) => {
     return (
         <React.Fragment>
@@ -36,13 +41,12 @@ const CreateRouteItem: React.FC<CreateRouteItemProps> = (props) => {
                     fontWeight='bold'
                     sx={{
                         opacity: props.open ? 1 : 0,
-                        color: `${
-                            props.locationName.includes(
-                                props.category.toLowerCase()
-                            )
-                                ? props.theme.palette.primary.main
-                                : "inherit"
-                        } !important`,
+                        color: `${props.locationName.includes(
+                            props.category.toLowerCase()
+                        )
+                            ? props.theme.palette.primary.main
+                            : "inherit"
+                            } !important`,
                     }}
                 >
                     {props.category}
@@ -70,17 +74,17 @@ const CreateRouteItem: React.FC<CreateRouteItemProps> = (props) => {
                                         // If the route is also the default route
                                         route.default
                                             ? // If the current location matches the route or is the root
-                                              props.locationName ===
-                                                  route.route ||
-                                              props.locationName === "/"
+                                            props.locationName ===
+                                                route.route ||
+                                                props.locationName === "/"
                                                 ? props.theme.palette.primary
-                                                      .main
+                                                    .main
                                                 : "inherit"
                                             : // If the current location matches the route
                                             props.locationName === route.route
-                                            ? props.theme.palette.primary.main
-                                            : "inherit"
-                                    } !important`,
+                                                ? props.theme.palette.primary.main
+                                                : "inherit"
+                                        } !important`,
                                 }}
                             >
                                 <ListItemIcon
@@ -127,10 +131,13 @@ const NavigationItems: React.FC<NavigationItemsProps> = ({
     const communicationsRoutes = routes.filter(
         (route) => route.category === "Communications"
     );
-    const filesRoutes = routes.filter((route) => route.category === "Files");
+    const filesRoutes = routes.filter(
+        (route) => route.category === "Files"
+    );
     const optionsRoutes = routes.filter(
         (route) => route.category === "Options"
     );
+    //Split the options into corresponding categories
     const locationName = useLocation().pathname;
     return (
         <React.Fragment>

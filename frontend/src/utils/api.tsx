@@ -288,7 +288,7 @@ export async function setExploreHDOption(
 
 /**
  * Restart a stream
- * @param {number} usbInfo - The usb info of the connected camera.
+ * @param {string} usbInfo - The usb info of the connected camera.
  * @returns {Promise<void>} - A promise that resolves when the option is successfully set.
  * @throws {Error} - If the index is invalid or the request fails.
  */
@@ -322,6 +322,7 @@ export async function restartStream(usbInfo: string): Promise<void> {
 
 /**
  * Restore a device to factory settings.
+ * @throws {Error} - If the request to reset the device fails.
  */
 export async function resetSettings(): Promise<void> {
     const url = `${DEVICE_API_URL}/reset_settings`;
@@ -345,6 +346,7 @@ export async function resetSettings(): Promise<void> {
         .catch((error: Error) => {
             console.log("Failed to reset settings");
             console.error(error);
+            throw error;
         });
 }
 
@@ -390,9 +392,14 @@ export async function restartMachine(): Promise<null> {
     });
     return null;
 }
-
+/**
+ * Request server to update DWEOS
+ * @param {string} tag_name - The identifier of the update to install 
+ * @returns {Promise<null>} - A promise that will never resolve because it is unimplemented.
+ * @throws {Error} - If the request to update DWEOS fails.
+ */
 export async function installUpdate(tag_name: string): Promise<null> {
-    const url = `${UPDATER_API_URL}/install_update`;
+    const url = `${UPDATER_API_URL}/install_update`; //Not implemented
     const data = {
         tag_name,
     };
@@ -411,9 +418,13 @@ export async function installUpdate(tag_name: string): Promise<null> {
     });
     return null;
 }
-
+/**
+ * Request server to see new releases of DWEOS
+ * @returns {Promise<null>} - A promise that will never resolve because it is unimplemented.
+ * @throws {Error} - If the request to get releases fails.
+ */
 export async function getReleases(): Promise<ReleaseList> {
-    const url = `${UPDATER_API_URL}/releases`;
+    const url = `${UPDATER_API_URL}/releases`; //not implemented
     const config: RequestInit = {
         mode: "cors",
         method: "GET",
@@ -432,7 +443,12 @@ export async function getReleases(): Promise<ReleaseList> {
             throw error;
         });
 }
-
+/**
+ * Gewt next free port of a host
+ * @param {string} host - The ip address of the host who will be checked for ports
+ * @returns {Promise<null>} - A promise that will resolve when the server finds a free port
+ * @throws {Error} - If the request to get a free port fails.
+ */
 export async function getNextPort(host: string): Promise<number> {
     const url = `${DEVICE_API_URL}/devices/get_next_port?${new URLSearchParams({
         host,
@@ -447,7 +463,12 @@ export async function getNextPort(host: string): Promise<number> {
     const res = await fetch(url, config);
     return ((await res.json()) as PortInfo).port;
 }
-
+/**
+ * Request server to start a video recording
+ * @param {string} usbInfo - The usb device that corresponds to the device that is being recorded
+ * @param {Recording} streaming - Information about various gstreamer properties of the video stream including width, height, interval, encode type, and file name
+ * @returns {Promise<null>} - A promise that will resolve when a recording has begun.
+ */
 export async function startVideoSaving(
     usbInfo: string,
     streaming: Recording
@@ -484,7 +505,12 @@ export async function startVideoSaving(
             return { startTime: 0 } as videoData;
         });
 }
-
+/**
+ * Request server to start a video recording
+ * @param {string} usbInfo - A usb that has a video and needs to be stopped
+ * @returns {Promise<null>} - A promise that will resolve when a recording has begun.
+ * @ {Error} - If the request to start recording fails.
+ */
 export async function stopVideoSaving(usbInfo: string): Promise<void> {
     const url = `${DEVICE_API_URL}/devices/stop_recording`;
     const data = {
@@ -512,7 +538,12 @@ export async function stopVideoSaving(usbInfo: string): Promise<void> {
             console.error(error);
         });
 }
-
+/**
+ * Tells if a device is currently recording, and if so for how long
+ * @param {string} usbInfo - The usb camera who needs to be checked
+ * @returns {Promise<recordingPing>} - A promise that will resolve when an update is recceived from the server.
+ * @throws {Error} - If the request to start recording fails.
+ */
 export async function recording_state(usbInfo: string): Promise<recordingPing> {
     const url = `${DEVICE_API_URL}/devices/recording_state`;
     const data = {
