@@ -47,6 +47,7 @@ class Stream:
         return f'{self._build_source()} ! {self._construct_caps()} ! {self._build_payload()} ! {self._build_sink()}'
 
     def _get_format(self):
+        '''Convert an enum to the corresponding encode type'''
         match self.encode_type:
             case StreamEncodeTypeEnum.H264:
                 return 'video/x-h264'
@@ -56,12 +57,15 @@ class Stream:
                 return ''
 
     def _build_source(self):
+        '''set the video4linux device'''
         return f'v4l2src device={self.device_path}'
 
     def _construct_caps(self):
+        '''Add values like format, width, height, and FPS to the pipeline'''
         return f'{self._get_format()},width={self.width},height={self.height},framerate={self.interval.denominator}/{self.interval.numerator}'
 
     def _build_payload(self):
+        '''Set the conversion pipeline'''
         match self.encode_type:
             case StreamEncodeTypeEnum.H264:
                 return 'h264parse ! queue ! rtph264pay name=pay0 config-interval=10 pt=96'
@@ -71,6 +75,7 @@ class Stream:
                 return ''
 
     def _build_sink(self):
+        '''Add streaming clients'''
         match self.stream_type:
             case StreamTypeEnum.UDP:
                 if len(self.endpoints) == 0:

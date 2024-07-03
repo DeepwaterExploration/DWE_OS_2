@@ -5,6 +5,7 @@ import {
     ListItemIcon,
     ListItemText,
     ListSubheader,
+    Theme,
     Typography,
 } from "@mui/material";
 import React from "react";
@@ -116,8 +117,7 @@ const CreateRouteItem: React.FC<CreateRouteItemProps> = (props) => {
 interface NavigationItemsProps {
     routes: RouteItem[];
     open: boolean;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    theme: any;
+    theme: Theme;
 }
 
 const NavigationItems: React.FC<NavigationItemsProps> = ({

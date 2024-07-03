@@ -87,8 +87,10 @@ class Saving:
     def _construct_pipeline(self):
         return (f'gst-launch-1.0 -e {self._build_source()} ! {self._build_payload()} ! {self._build_sink()}')
     def _build_source(self):
+        '''Set the video4linux device'''
         return f'v4l2src device={self._get_path()}'
     def _get_format(self):
+        '''Convert an enum to the corresponding encode type'''
         match self.encode_type:
             case StreamEncodeTypeEnum.H264:
                 return 'video/x-h264'
@@ -97,6 +99,7 @@ class Saving:
             case _:
                 return ''
     def _get_extension(self):
+        '''Create the file extension based on the format'''
         match self.encode_type:
             case StreamEncodeTypeEnum.H264:
                 return 'mp4'
@@ -105,6 +108,7 @@ class Saving:
             case _:
                 return 'unknown' 
     def _get_path(self):
+        '''dictates weather to use a mjeg or h264 device'''
         match self.encode_type:
             case StreamEncodeTypeEnum.H264:
                 return self.h264_streamer
@@ -113,15 +117,18 @@ class Saving:
             case _:
                 return ''
     def _build_payload(self):
+        '''Add values like format, width, height, and FPS to the pipeline as well as the conversion parameters'''
         base = f"{self._get_format()},width={self.width},height={self.height},framerate={self.interval.denominator}/{self.interval.numerator}"
         if self.encode_type == StreamEncodeTypeEnum.H264:
             return f"{base} ! h264parse ! queue ! mp4mux"
         elif self.encode_type == StreamEncodeTypeEnum.MJPEG:
             return f"{base} ! queue ! avimux"
     def _build_sink(self):
+        '''Create final file location'''
         self.final_path = os.path.join(self.path, f'{datetime.fromtimestamp(self._time).strftime(self.strftime)}.{self._get_extension()}'.replace(" ",""))
         return f"filesink location={self.final_path}"
     def set_customization(self, schema: StreamSchema):
+        '''Change parameters about the recording'''
         try:
             schema = StreamSchema().load(data=schema)
         except:

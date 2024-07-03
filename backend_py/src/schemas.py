@@ -74,7 +74,7 @@ class ControlSchema(Schema):
 class DeviceInfoSchema(Schema):
     device_name = fields.Str()
     bus_info = fields.Str()
-    device_paths: fields.List(fields.Str())
+    device_paths = fields.List(fields.Str())
     vid = fields.Int()
     pid = fields.Int()
 

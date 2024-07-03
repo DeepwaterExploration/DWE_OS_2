@@ -114,5 +114,5 @@ export const routes: RouteItem[] = [
         name: "Settings",
         key: "settings",
         default: false
-    }
+    } //allows user to change global settings/defaults
 ];
