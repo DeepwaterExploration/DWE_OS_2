@@ -28,6 +28,7 @@ import {
     Tab,
     Tabs,
     TextField,
+    Tooltip,
     Typography,
 } from "@mui/material";
 import PopupState, { bindMenu, bindTrigger } from "material-ui-popup-state";
@@ -740,18 +741,20 @@ const StreamOptions: React.FC<StreamOptionsProps> = (props) => {
                             </Button>
                         </div>
                         <div style={{ width: "100%", display: "flex", justifyContent: "space-evenly", marginBottom: "10px" }}>
-                            <TextField
-                                sx={{ width: "65%" }}
-                                label='Format'
-                                variant='outlined'
-                                value={recordingName}
-                                onChange={(selected) =>
-                                    setRecordingName(
-                                        () => selected.target.value
-                                    )
-                                }
-                                size='small'
-                            ></TextField>
+                            <Tooltip title={"Available keys: $NICKNAME, $CAMERA, $DATE, $TIME, $EPOCH"}>
+                                <TextField
+                                    sx={{ width: "65%" }}
+                                    label='Format'
+                                    variant='outlined'
+                                    value={recordingName}
+                                    onChange={(selected) =>
+                                        setRecordingName(
+                                            () => selected.target.value
+                                        )
+                                    }
+                                    size='small'
+                                />
+                            </Tooltip>
                             <TextField
                                 sx={{ width: "30%" }}
                                 select

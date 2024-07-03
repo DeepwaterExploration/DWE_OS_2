@@ -35,9 +35,6 @@ func handleWifiStatus(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Set the response status code
-		w.WriteHeader(http.StatusOK)
-
 		// Write the JSON response to the client
 		w.Write(jsonData)
 	}
