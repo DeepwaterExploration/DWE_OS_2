@@ -1,4 +1,5 @@
 import {
+    Button,
     Table,
     TableBody,
     TableCell,
@@ -8,8 +9,9 @@ import {
 import { DataGrid } from "@mui/x-data-grid";
 import { useEffect, useState } from "react";
 
-import { getVideos , videoProxy } from "./api";
+import { deleteFile, getVideos, videoProxy } from "./api";
 import { CameraIdentifier, FileInfo, FilesJson } from "./types";
+import { Delete } from "@mui/icons-material";
 
 
 interface viewerProps {
@@ -51,6 +53,7 @@ interface previewProps {
     video: string | undefined;
     videoList: FilesJson;
     theme: string;
+    updatelist: [FilesJson, (arg0: FilesJson) => void];
 }
 const Preview: React.FC<previewProps> = (props) => {
     const video = props.videoList.find((o) => o.path === props.video);
@@ -64,6 +67,7 @@ const Preview: React.FC<previewProps> = (props) => {
                         justifyContent: "center",
                         alignItems: "center",
                         flexDirection: "column",
+                        rowGap: "10px"
                     }}
                 >
                     <video controls width='80%' src={videoProxy(video.path)}>
@@ -118,6 +122,25 @@ const Preview: React.FC<previewProps> = (props) => {
                             </TableRow>
                         </TableBody>
                     </Table>
+                    <Button
+                        sx={{
+                            width: "90%",
+                            margin: "0px"
+                        }}
+                        variant="contained"
+                        color="error"
+                        onClick={() => {
+                            const name = video.path.split("/").at(-1)!;
+                            deleteFile(name).then(() => {
+                                var videos = structuredClone(props.updatelist[0]);
+                                videos = videos.filter((a) => a.path != video.path);
+                                props.updatelist[1](videos);
+                            })
+                        }}
+                    >
+                        <Delete />
+                        Delete
+                    </Button>
                 </div>
             ) : undefined}
         </div>
@@ -129,6 +152,7 @@ const Files: React.FC = () => {
     const [selectedVideo, setSelectedVideo] = useState<string | undefined>(
         undefined
     );
+
     const getTheme = () =>
         localStorage.getItem("theme") !== null
             ? (localStorage.getItem("theme") as string)
@@ -152,6 +176,7 @@ const Files: React.FC = () => {
                 videoList={videoList}
                 video={selectedVideo}
                 theme={theme}
+                updatelist={[videoList, setVideoList]}
             />
         </div>
     );

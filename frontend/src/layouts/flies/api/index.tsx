@@ -27,4 +27,20 @@ export function videoProxy(path: string) {
     return `${SYSTEM_API_URL}/servevideo?path=${path}`;
 }
 
+export async function deleteFile(file: string) {
+    const url = `${SYSTEM_API_URL}/deletevideo?file=${file}`;
+    const config: RequestInit = {
+        mode: "cors",
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    }
+    return fetch(url, config)
+        .then((r: Response) => { r })
+        .catch((err) => {
+            console.error(err)
+        })
+
+}
 

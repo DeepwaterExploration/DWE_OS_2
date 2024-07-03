@@ -3,8 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -336,6 +338,102 @@ func handleVideo(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, universalJson)
 
 }
+
+func deleteVideo(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	file := r.URL.Query().Get("file")
+
+	path, err := os.UserHomeDir()
+	if err != nil {
+		log.Printf("Error getting the Video path: %v", err)
+		return
+	}
+
+	dwePath := filepath.Join(path, ".DWE")
+	videos := filepath.Join(dwePath, "videos")
+	universalJson := filepath.Join(videos, "videos.json")
+
+	videoPath := filepath.Join(videos, file)
+
+	// Ensure directories exist
+	if _, err := os.Stat(dwePath); os.IsNotExist(err) {
+		if err := os.Mkdir(dwePath, 0777); err != nil {
+			log.Printf("Error creating directory: %v", err)
+			return
+		}
+	}
+	if _, err := os.Stat(videos); os.IsNotExist(err) {
+		if err := os.Mkdir(videos, 0777); err != nil {
+			log.Printf("Error creating directory: %v", err)
+			return
+		}
+	}
+
+	// Ensure the JSON file exists
+	if _, err := os.Stat(universalJson); os.IsNotExist(err) {
+		file, err := os.Create(universalJson)
+		if err != nil {
+			log.Printf("Error creating JSON file: %v", err)
+			return
+		}
+		empty := []byte("[]")
+		if _, err := file.Write(empty); err != nil {
+			log.Printf("Error writing to JSON file: %v", err)
+			return
+		}
+		file.Close()
+		log.Println("Created new JSON file")
+		return // there was no file to delete
+	}
+
+	// Read the JSON file
+	contents, err := os.ReadFile(universalJson)
+	if err != nil {
+		log.Printf("Error reading JSON file: %v", err)
+		return
+	}
+
+	var data []VideoInfo
+	if err := json.Unmarshal(contents, &data); err != nil {
+		log.Printf("Error unmarshalling JSON: %v", err)
+		return
+	}
+
+	newData := make([]VideoInfo, 0)
+	videoDeleted := false
+	for _, video := range data {
+		if video.Path == videoPath {
+			videoDeleted = true
+		} else {
+			newData = append(newData, video)
+		}
+	}
+
+	if !videoDeleted {
+		log.Println("Video not found:", videoPath)
+		return
+	}
+
+	// Remove the video file
+	if err := os.Remove(videoPath); err != nil {
+		log.Printf("Error deleting video file: %v", err)
+		return
+	}
+
+	// Save the updated JSON data
+	updatedContents, err := json.MarshalIndent(newData, "", "  ")
+	if err != nil {
+		log.Printf("Error marshalling JSON: %v", err)
+		return
+	}
+
+	if err := os.WriteFile(universalJson, updatedContents, 0644); err != nil {
+		log.Printf("Error writing JSON file: %v", err)
+		return
+	}
+
+}
+
 func serveVideo(w http.ResponseWriter, r *http.Request) {
 	url := r.URL.Query().Get("path")
 	if url == "" {
@@ -378,6 +476,7 @@ func main() {
 		r.HandleFunc("/getTemperature", handleGetTemperature).Methods("GET")
 		r.HandleFunc("/getCPU", handleCPU).Methods("GET")
 		r.HandleFunc("/videos", handleVideo).Methods("GET")
+		r.HandleFunc("/deletevideo", deleteVideo).Methods("GET")
 		r.HandleFunc("/servevideo", serveVideo).Methods("GET")
 
 		// Create a new HTTP server with the CORS (Cross-Origin Resource Sharing) middleware enabled
