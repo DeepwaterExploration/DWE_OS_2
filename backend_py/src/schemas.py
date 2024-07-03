@@ -124,6 +124,7 @@ class DeviceSchema(Schema):
     #     return data
 
 
+
 class SavedDeviceSchema(DeviceSchema):
     controls = fields.Nested(ControlSchema, exclude=['flags'], many=True)
     stream = fields.Nested(StreamSchema, exclude=['device_path', 'started'])
@@ -140,6 +141,32 @@ class SavedDeviceSchema(DeviceSchema):
                 control['control_id'], control['name'], control['value']))
         return SavedDevice(data['bus_info'], data['vid'], data['pid'], data['nickname'], controls=saved_controls, options=saved_options, stream=saved_stream)
 
+
+class RecordingConfigSchema(Schema):
+    defaultName = fields.Str()
+    defaultFormat = fields.Str()
+    defaultResolution = fields.Str()
+    defaultFPS = fields.Int()
+
+    @post_load
+    def make_recording_config(self, data, **kwargs):
+        return RecordingConfig(**data)
+
+class StreamConfigSchema(Schema):
+    defaultHost = fields.Str()
+    defaultPort = fields.Int()
+
+    @post_load
+    def make_stream_config(self, data, **kwargs):
+        return StreamConfig(**data)
+
+class SavedPrefrencesSchema(Schema):
+    defaultRecording = fields.Nested(RecordingConfigSchema)
+    defaultStream = fields.Nested(StreamConfigSchema)
+
+    @post_load
+    def make_saved_preferences(self, data, **kwargs):
+        return SavedPrefrences(**data)
 
 # API SCHEMAS
 

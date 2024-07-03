@@ -3,6 +3,7 @@ import {
     PortInfo,
     Recording,
     ReleaseList,
+    SavedPrefrences,
     Stream,
     StreamEndpoint,
     StreamFormat,
@@ -577,4 +578,68 @@ export async function recording_state(usbInfo: string): Promise<recordingPing> {
         });
 }
 
+/**
+ * Gets server prefrences
+ * @returns {Promise<SavedPrefrences>} - A promise that will resolve when prefrences are reccived.
+ * @throws {Error} - If the request fails.
+ */
+export async function getSettings(): Promise<SavedPrefrences> {
+    const url = `${DEVICE_API_URL}/prefrences`;
+    const config: RequestInit = {
+        mode: "cors",
+    };
+    return await fetch(url, config)
+        // Process the response data
+        .then((response: Response) => {
+            if (!response.ok) {
+                throw new Error("Failed to get prefrences");
+            }
+            return response.json();
+        })
+        .then((data: SavedPrefrences) => {
+            return data;
+        })
+        .catch((error: Error) => {
+            console.log("Failed to get prefrences");
+            console.error(error);
+            throw error;
+        });
+}
 
+/**
+ * Sets a server prefrence
+ * @param type - Weather to set a prefence for Recording or Stream
+ * @param key - The setting to set
+ * @param value - what to set the exact setting
+ * @returns {Promise<void>} - A promise that resolves when the request to change settings is completed
+ */
+export async function setPrefrence(type: "defaultRecording" | "defaultStream", key: string, value: string | number) {
+    const url = `${DEVICE_API_URL}/setprefrences`
+    const data = {
+        type: type,
+        key: key,
+        value: value
+    }
+    const config: RequestInit = {
+        mode: "cors",
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+        // credentials: "include",
+    };
+    return await fetch(url, config)
+        // Process the response data
+        .then((response: Response) => {
+            if (!response.ok) {
+                throw new Error("Failed to restart stream");
+            }
+        })
+        .catch((error: Error) => {
+            console.log("Failed to restart stream");
+            console.error(error);
+        });
+
+
+}

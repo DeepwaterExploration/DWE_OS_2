@@ -54,7 +54,7 @@ const TextFieldButton: React.FC<TextInput_ButtonProps> = ({
                     label={textInputLabel}
                     onChange={handleTextFieldChange}
                     value={textInputValue}
-                    variant='standard'
+                    variant='outlined'
                     error={textInputError}
                     size='small'
                 />

@@ -217,3 +217,20 @@ export interface recordingPing {
     recording: boolean,
     time: number
 }
+
+
+export interface StreamConfig {
+    defaultHost: string
+    defaultPort: number
+}
+
+export interface RecordingConfig {
+    defaultName: string
+    defaultFormat: encodeType
+    defaultResolution: string
+    defaultFPS: number
+}
+export interface SavedPrefrences {
+    defaultStream: StreamConfig
+    defaultRecording: RecordingConfig
+}

@@ -39,6 +39,7 @@ import {
     CameraFormatSize,
     Control,
     Device,
+    SavedPrefrences,
     Stream,
     StreamEndpoint,
     bitrateMode,
@@ -49,6 +50,7 @@ import {
 import {
     configureStream,
     getNextPort,
+    getSettings,
     recording_state,
     restartStream,
     setDeviceNickname,
@@ -281,17 +283,19 @@ const StreamOptions: React.FC<StreamOptionsProps> = (props) => {
     const [tabPanel, setTabPanel] = React.useState(1);
 
 
+
     useEffect(() => {
         recording_state(props.device.bus_info)
             .then(
                 (ping) => setFileTime(ping.time)
             )
+        setInterval(() => recording_state(props.device.bus_info)
+            .then(
+                (ping) => setFileTime(ping.time)
+            ), 1000)
     }, [])
 
-    setInterval(() => recording_state(props.device.bus_info)
-        .then(
-            (ping) => setFileTime(ping.time)
-        ), 1000)
+
 
     setInterval(() => {
         if (tabPanel === 2 && fileTime !== 0) {
@@ -430,6 +434,25 @@ const StreamOptions: React.FC<StreamOptionsProps> = (props) => {
             }
         }
     };
+
+    const fetchSettings = async () => {
+        try {
+            const settings: SavedPrefrences = await getSettings();
+            setHost(settings.defaultStream.defaultHost);
+            setPort(settings.defaultStream.defaultPort);
+            setRecordingFps(settings.defaultRecording.defaultFPS.toString());
+            setRecordingEncodeType(settings.defaultRecording.defaultFormat);
+            setRecordingResolution(settings.defaultRecording.defaultResolution);
+            setRecordingName(settings.defaultRecording.defaultName);
+
+        } catch (error) {
+            enqueueSnackbar(`Failed to load settings`, { variant: "error" });
+        }
+    };
+
+    useEffect(() => {
+        fetchSettings()
+    }, [enqueueSnackbar])
     return (
         <FormGroup
             style={{
@@ -645,142 +668,147 @@ const StreamOptions: React.FC<StreamOptionsProps> = (props) => {
                 </Button>
             </TabPanel>
             <TabPanel value={tabPanel} index={2}>
-                {fileTime === 0 ? undefined : (
-                    <p
-                        style={{
-                            width: "100%",
-                            textAlign: "center",
-                            fontSize: "1.5em",
-                            fontWeight: "bold",
-                        }}
-                    >
-                        {countName}
-                    </p>
-                )}
+
                 <div style={styles.cardContent.divAligned}>
-                    <Button
-                        color='primary'
-                        variant='contained'
-                        disabled={fileTime !== 0}
-                        onClick={() => {
-                            const [width, height] = recordingResolution.split("x").map((e: string) => parseInt(e))
-                            props.device.recording.encode_type =
-                                recordingEncodeType;
-                            props.device.recording.name = recordingName
-                                .replace("$NICKNAME", props.device.nickname)
-                                .replace("$CAMERA", props.device.device_info.device_name)
-                                .replace("$DATE", "%F")
-                                .replace("$TIME", "%T")
-                                .replace("$EPOCH", "%s")
-                            props.device.recording.format = {
-                                width: width,
-                                height: height,
-                                interval: {
-                                    denominator: parseInt(recordingFps),
-                                    numerator: 1
+                    <div style={{ width: "100%" }}>
+                        {fileTime === 0 ? undefined : (
+                            <p
+                                style={{
+                                    width: "100%",
+                                    textAlign: "center",
+                                    fontSize: "1.5em",
+                                    fontWeight: "bold",
+                                }}
+                            >
+                                {countName}
+                            </p>
+                        )}
+                        <div style={styles.cardContent.divAligned}>
+                            <Button
+                                color='primary'
+                                variant='contained'
+                                disabled={fileTime !== 0}
+                                onClick={() => {
+                                    const [width, height] = recordingResolution.split("x").map((e: string) => parseInt(e))
+                                    props.device.recording.encode_type =
+                                        recordingEncodeType;
+                                    props.device.recording.name = recordingName
+                                        .replace("$NICKNAME", props.device.nickname)
+                                        .replace("$CAMERA", props.device.device_info.device_name)
+                                        .replace("$DATE", "%F")
+                                        .replace("$TIME", "%T")
+                                        .replace("$EPOCH", "%s")
+                                    props.device.recording.format = {
+                                        width: width,
+                                        height: height,
+                                        interval: {
+                                            denominator: parseInt(recordingFps),
+                                            numerator: 1
+                                        }
+
+                                    }
+                                    startVideoSaving(
+                                        props.device.bus_info,
+                                        props.device.recording
+                                    ).then((time) => {
+                                        setCountName("00:00:00");
+                                        setFileTime(() => time.startTime);
+                                        enqueueSnackbar("Video Recording Started", {
+                                            variant: "info",
+                                        });
+                                    });
+                                }}
+                            >
+                                Start Recording
+                            </Button>
+                            <Button
+                                color='primary'
+                                variant='contained'
+                                disabled={fileTime === 0}
+                                onClick={() => {
+                                    stopVideoSaving(props.device.bus_info).then(() => {
+                                        setFileTime(() => 0);
+                                        setCountName("00:00:00");
+
+                                        enqueueSnackbar("Video Recording Stopped", {
+                                            variant: "info",
+                                        });
+                                    });
+                                }}
+                            >
+                                Stop Recording
+                            </Button>
+                        </div>
+                        <div style={{ width: "100%", display: "flex", justifyContent: "space-evenly", marginBottom: "10px" }}>
+                            <TextField
+                                sx={{ width: "65%" }}
+                                label='Format'
+                                variant='outlined'
+                                value={recordingName}
+                                onChange={(selected) =>
+                                    setRecordingName(
+                                        () => selected.target.value
+                                    )
                                 }
-
-                            }
-                            startVideoSaving(
-                                props.device.bus_info,
-                                props.device.recording
-                            ).then((time) => {
-                                setCountName("00:00:00");
-                                setFileTime(() => time.startTime);
-                                enqueueSnackbar("Video Recording Started", {
-                                    variant: "info",
-                                });
-                            });
-                        }}
-                    >
-                        Start Recording
-                    </Button>
-                    <Button
-                        color='primary'
-                        variant='contained'
-                        disabled={fileTime === 0}
-                        onClick={() => {
-                            stopVideoSaving(props.device.bus_info).then(() => {
-                                setFileTime(() => 0);
-                                setCountName("00:00:00");
-
-                                enqueueSnackbar("Video Recording Stopped", {
-                                    variant: "info",
-                                });
-                            });
-                        }}
-                    >
-                        Stop Recording
-                    </Button>
-                    <div style={{ width: "100%", display: "flex", justifyContent: "space-evenly" }}>
-                        <TextField
-                            sx={{ width: "65%" }}
-                            label='Format'
-                            variant='outlined'
-                            value={recordingName}
-                            onChange={(selected) =>
-                                setRecordingName(
-                                    () => selected.target.value
-                                )
-                            }
-                            size='small'
-                        ></TextField>
-                        <TextField
-                            sx={{ width: "30%" }}
-                            select
-                            label='Format'
-                            variant='outlined'
-                            value={recordingEncodeType}
-                            onChange={(selected) =>
-                                setRecordingEncodeType(
-                                    () => selected.target.value as encodeType
-                                )
-                            }
-                            size='small'
-                        >
-                            <br />
-                            {ENCODERS.map((option) => (
-                                <MenuItem key={option} value={option}>
-                                    {option}
-                                </MenuItem>
-                            ))}
-                        </TextField>
-                    </div>
-                    <div style={{ width: "100%", display: "flex", justifyContent: "space-evenly" }}>
-                        <TextField
-                            sx={{ width: "50%" }}
-                            select
-                            label='Resolution'
-                            variant='outlined'
-                            defaultValue='1920x1080'
-                            onChange={(selected) =>
-                                setRecordingResolution(selected.target.value)
-                            }
-                            size='small'
-                        >
-                            {RESOLUTIONS
-                                .filter((x) => parseInt(x.split("x")[0]) > 639) // gstreamer has difficulty streaming at low resolutions
-                                .map((resolution) => (
-                                    <MenuItem key={resolution} value={resolution}>
-                                        {resolution}
+                                size='small'
+                            ></TextField>
+                            <TextField
+                                sx={{ width: "30%" }}
+                                select
+                                label='Format'
+                                variant='outlined'
+                                value={recordingEncodeType}
+                                onChange={(selected) =>
+                                    setRecordingEncodeType(
+                                        () => selected.target.value as encodeType
+                                    )
+                                }
+                                size='small'
+                            >
+                                <br />
+                                {ENCODERS.map((option) => (
+                                    <MenuItem key={option} value={option}>
+                                        {option}
                                     </MenuItem>
                                 ))}
-                        </TextField>
-                        <TextField
-                            sx={{ width: "45%" }}
-                            select
-                            label='FPS'
-                            variant='outlined'
-                            defaultValue='30'
-                            onChange={(selected) => setRecordingFps(selected.target.value)}
-                            size='small'
-                        >
-                            {INTERVALS.map((interval) => (
-                                <MenuItem key={interval} value={interval}>
-                                    {interval}
-                                </MenuItem>
-                            ))}
-                        </TextField>
+                            </TextField>
+                        </div>
+                        <div style={{ width: "100%", display: "flex", justifyContent: "space-evenly" }}>
+                            <TextField
+                                sx={{ width: "50%" }}
+                                select
+                                label='Resolution'
+                                variant='outlined'
+                                defaultValue='1920x1080'
+                                onChange={(selected) =>
+                                    setRecordingResolution(selected.target.value)
+                                }
+                                size='small'
+                            >
+                                {RESOLUTIONS
+                                    .filter((x) => parseInt(x.split("x")[0]) > 639) // gstreamer has difficulty streaming at low resolutions
+                                    .map((resolution) => (
+                                        <MenuItem key={resolution} value={resolution}>
+                                            {resolution}
+                                        </MenuItem>
+                                    ))}
+                            </TextField>
+                            <TextField
+                                sx={{ width: "45%" }}
+                                select
+                                label='FPS'
+                                variant='outlined'
+                                defaultValue='30'
+                                onChange={(selected) => setRecordingFps(selected.target.value)}
+                                size='small'
+                            >
+                                {INTERVALS.map((interval) => (
+                                    <MenuItem key={interval} value={interval}>
+                                        {interval}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
+                        </div>
                     </div>
                 </div>
             </TabPanel>

@@ -11,7 +11,7 @@ from .camera_helper_loader import *
 from .schemas import *
 from .device import *
 from .stream import *
-from .settings import SettingsManager
+from .settings import SettingsManager, PrefrencesManager
 from .broadcast_server import BroadcastServer
 from .device_manager import DeviceManager
 from .recording import Saving
@@ -24,6 +24,7 @@ def main():
     app.json.sort_keys = False
 
     settings_manager = SettingsManager()
+    prefrences_manager = PrefrencesManager()
     broadcast_server = BroadcastServer()
     device_manager = DeviceManager(
         settings_manager=settings_manager, broadcast_server=broadcast_server)
@@ -104,6 +105,18 @@ def main():
 
         return jsonify({})
 
+
+    @app.route('/prefrences', methods=['GET'])
+    def get_prefrences():
+        return jsonify(prefrences_manager.getSettings())
+    @app.route('/setprefrences',methods=['POST'])
+    def set_prefrences():
+        prefrences_manager.saveValue(
+            type=request.get_json().get('type'),
+            key=request.get_json().get('key'),
+            value=request.get_json().get('value')
+        )
+        return jsonify({})
     http_server = WSGIServer(('0.0.0.0', 8080), app, log=None)
     device_manager.start_monitoring()
 

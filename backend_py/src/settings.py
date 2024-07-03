@@ -4,7 +4,7 @@ import time
 import json
 
 from .saved_types import *
-from .schemas import SavedDeviceSchema
+from .schemas import SavedDeviceSchema, SavedPrefrencesSchema
 from .device import EHDDevice
 
 
@@ -60,3 +60,52 @@ class SettingsManager:
         saved_device = SavedDeviceSchema().load(SavedDeviceSchema().dump(device))
         # schedule a save command
         self.to_save.append(saved_device)
+
+class DefaultRecording(RecordingConfig):
+    def __init__(self):
+        self.defaultName = "$CAMERA-$EPOCH"
+        self.defaultFormat = StreamEncodeTypeEnum.MJPEG
+        self.defaultResolution = "1920x1080"
+        self.defaultFPS = 30
+class DefaultStream(StreamConfig):
+    def __init__(self):
+        self.defaultHost = "192.168.2.1"
+        self.defaultPort = "5600"
+class DefaultPrefrences(SavedPrefrences):
+    def __init__(self):
+        self.defaultRecording = DefaultRecording()
+        self.defaultStream = DefaultStream()
+
+
+class PrefrencesManager:
+
+    def __init__(self) -> None:
+        try:
+            self.file_object = open('./server_prefrences.json', 'r+')
+        except FileNotFoundError:
+            open('./server_prefrences.json', 'w').close()
+            self.file_object = open('./server_prefrences.json', 'r+')
+
+        try:
+            settings: Dict = json.loads(self.file_object.read())
+            self.settings: SavedPrefrences = SavedPrefrencesSchema().load(settings)
+        except json.JSONDecodeError:
+            self.settings = DefaultPrefrences()
+            self._saveSettings()
+
+    def saveValue(self, type: Literal["defaultRecording", "defaultStream"], key: str, value):
+        dict = SavedPrefrencesSchema().dump(self.settings)
+        dict[type][key]=value
+        self.settings=SavedPrefrencesSchema().load(dict)
+        self._saveSettings()
+    def _saveSettings(self):
+        self.file_object.seek(0)
+        self.file_object.write(
+            json.dumps(SavedPrefrencesSchema().dump(self.settings)))
+        self.file_object.truncate()
+        self.file_object.flush()
+
+    def getSettings(self):
+        return SavedPrefrencesSchema().dump(self.settings)
+
+

@@ -39,3 +39,18 @@ class SavedDevice:
     stream: SavedStream
     options: SavedOptions
     controls: List[SavedControl]
+
+@dataclass
+class StreamConfig:
+    defaultHost: str
+    defaultPort: int
+@dataclass
+class RecordingConfig:
+    defaultName: str
+    defaultFormat: StreamEncodeTypeEnum
+    defaultResolution: str
+    defaultFPS: int
+@dataclass
+class SavedPrefrences:
+    defaultStream: StreamConfig
+    defaultRecording: RecordingConfig
