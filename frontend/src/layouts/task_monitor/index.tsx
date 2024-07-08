@@ -1,23 +1,31 @@
 import { Grid } from "@mui/material";
 import React, { useEffect, useState } from "react";
 
-import { getCPUInfo, getTemperatureInfo } from "./api";
+import { getCPUInfo, getProcesses, getTemperatureInfo } from "./api";
 import CPUCard from "./CPUCard";
-import DiskCard from "./DiskCard";
 import TemperatureCard from "./TemperatureCard";
-import { DiskInfo, MemoryInfo } from "./types";
 // import MemoryCard from "./MemoryCard";
-import { CPUInfo, TemperatureInfo } from "./types";
+import { CPUInfo, processInfo, TemperatureInfo } from "./types";
+import ProcessesCard from "./processesCard";
+import { getSettings } from "../../utils/api";
+import { SavedPrefrences } from "../../types/types";
 
 const TaskMonitor: React.FC = () => {
     const [cpuInfo, setCPUInfo] = useState<CPUInfo | null>(null);
-    const [diskInfo, setDiskInfo] = useState<DiskInfo | null>(null);
-    const [memoryInfo, setMemoryInfo] = useState<MemoryInfo | null>(null);
-    const [temperatureInfo, setTemperatureInfo] =
-        useState<TemperatureInfo | null>(null);
+    const [temperatureInfo, setTemperatureInfo] = useState<TemperatureInfo | null>(null);
+    const [processInfo, setProcessInfo] = useState<processInfo[]>([]);
     const [minTemp, setMinTemp] = useState<number | null>(null);
     const [maxTemp, setMaxTemp] = useState<number | null>(null);
 
+    const [numProc, setNumProc] = useState(10);
+
+    const fetchSettings = async () => {
+        const settings: SavedPrefrences = await getSettings();
+        setNumProc(settings.defaultProcesses.defaultNumber)
+    }
+    useEffect(() => {
+        fetchSettings();
+    }, [])
     useEffect(() => {
         // Track the maximum temperature using a local variable
         let localMaxTemp = maxTemp;
@@ -32,20 +40,22 @@ const TaskMonitor: React.FC = () => {
             // setMemoryInfo(memoryInfo);
             const temperatureInfo = await getTemperatureInfo();
             setTemperatureInfo(temperatureInfo);
+
+            const processInfo = (await getProcesses());
+
+            setProcessInfo(processInfo);
             // Update the localMaxTemp if the fetched temperature is greater than the current localMaxTemp
             if (
                 localMinTemp === null ||
                 temperatureInfo.processor_temp < localMinTemp
             ) {
                 localMinTemp = temperatureInfo.processor_temp;
-                console.log(localMinTemp);
             }
             if (
                 localMaxTemp === null ||
                 temperatureInfo.processor_temp > localMaxTemp
             ) {
                 localMaxTemp = temperatureInfo.processor_temp;
-                console.log(localMaxTemp);
             }
 
             // Update the state with the new temperatureInfo and the final localMaxTemp
@@ -99,6 +109,10 @@ const TaskMonitor: React.FC = () => {
                             cpuTemp={temperatureInfo.processor_temp}
                             minTemp={minTemp || 0}
                             maxTemp={maxTemp}
+                        />
+                        <ProcessesCard
+                            processes={processInfo}
+                            rowLimit={numProc}
                         />
                     </>
                 )}

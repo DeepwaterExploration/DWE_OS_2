@@ -1,1 +1,1 @@
-{"defaultRecording": {"defaultName": "$EPOCH", "defaultFormat": "MJPEG", "defaultResolution": "1920x1080", "defaultFPS": 10}, "defaultStream": {"defaultHost": "127.0.0.1", "defaultPort": 5600}}
+{"defaultRecording": {"defaultName": "$CAMERA-$EPOCH", "defaultFormat": "StreamEncodeTypeEnum.MJPEG", "defaultResolution": "1920x1080", "defaultFPS": 30}, "defaultStream": {"defaultHost": "192.168.2.1", "defaultPort": 5600}, "defaultProcesses": {"defaultNumber": 10}}

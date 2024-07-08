@@ -230,7 +230,11 @@ export interface RecordingConfig {
     defaultResolution: string
     defaultFPS: number
 }
+export interface ProcessConfig {
+    defaultNumber: number
+}
 export interface SavedPrefrences {
     defaultStream: StreamConfig
     defaultRecording: RecordingConfig
+    defaultProcesses: ProcessConfig
 }

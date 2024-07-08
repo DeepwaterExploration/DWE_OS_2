@@ -1,4 +1,4 @@
-import MemoryIcon from "@mui/icons-material/Memory";
+import TableRowsIcon from '@mui/icons-material/TableRows';
 import {
     Avatar,
     Card,
@@ -13,24 +13,16 @@ import {
 } from "@mui/material";
 import React from "react";
 
-import { fPercent } from "../../utils/formatNumber";
+import { fNumber } from "../../utils/formatNumber";
+import { processInfo } from "./types";
 
 interface CPUCardProps {
-    totalUsagePercent: number;
-    deviceName: string;
-    deviceStats: number[];
+    processes: processInfo[]
+    rowLimit: number
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function chunkArray<T extends any[]>(arr: T, size: number): T[] {
-    return arr.reduce(
-        (acc, _, i) => (i % size ? acc : [...acc, arr.slice(i, i + size)]),
-        []
-    );
-}
 
-const CPUCard: React.FC<CPUCardProps> = (props) => {
-    const rowLimit = 4;
+const ProcessesCard: React.FC<CPUCardProps> = (props) => {
     return (
         <Card
             sx={{
@@ -43,7 +35,6 @@ const CPUCard: React.FC<CPUCardProps> = (props) => {
         >
             <List dense={true}>
                 <ListItem
-                    key={`sasa`}
                     secondaryAction={
                         <IconButton
                             edge='end'
@@ -54,20 +45,15 @@ const CPUCard: React.FC<CPUCardProps> = (props) => {
                 >
                     <ListItemAvatar>
                         <Avatar>
-                            <MemoryIcon sx={{ fontSize: 30, mx: 0.5 }} />
+                            <TableRowsIcon
+                                sx={{ fontSize: 30, mx: 0.5 }}
+                            />
                         </Avatar>
                     </ListItemAvatar>
                     <ListItemText
-                        primary='CPU Usage'
-                        secondary={`Total Usage: ${fPercent(
-                            props.totalUsagePercent
-                        )}`}
+                        primary='Processes'
+                        secondary={''}
                     />
-                </ListItem>
-                <ListItem>
-                    <Typography variant='h5' color='text.primary'>
-                        {props.deviceName}
-                    </Typography>
                 </ListItem>
                 <ListItem>
                     <Grid
@@ -82,9 +68,9 @@ const CPUCard: React.FC<CPUCardProps> = (props) => {
                             paddingTop: 3,
                         }}
                     >
-                        {props.deviceStats &&
-                            chunkArray(props.deviceStats, rowLimit).map(
-                                (row, rowIndex) => (
+                        {props.processes &&
+                            props.processes.filter((a) => a.cpu > 0).sort((a, b) => b.cpu - a.cpu).slice(0, props.rowLimit).map(
+                                (stat, rowIndex) => (
                                     <Grid
                                         key={rowIndex}
                                         container
@@ -94,13 +80,13 @@ const CPUCard: React.FC<CPUCardProps> = (props) => {
                                         justifyContent='space-evenly'
                                         alignItems='center'
                                     >
-                                        {row.map((stat, index) => (
+                                        {
                                             <Grid
-                                                key={`${rowIndex}:${index}`}
+                                                key={`${stat.cmd}${stat.name}${stat.pid}`}
                                                 item
                                                 xs={12}
-                                                sm={6}
-                                                md={3}
+                                                sm={12}
+                                                md={12}
                                                 justifyContent='space-evenly'
                                             >
                                                 {/* Render your item component here */}
@@ -113,20 +99,17 @@ const CPUCard: React.FC<CPUCardProps> = (props) => {
                                                         variant='body1'
                                                         color='text.primary'
                                                     >
-                                                        {`Core ${rowLimit *
-                                                            rowIndex +
-                                                            index
-                                                            }`}
+                                                        {stat.name} {(stat.cmd !== "" && stat.cmd !== stat.name) ? `(${stat.cmd})` : ""}
                                                     </Typography>
                                                     <Typography
                                                         variant='body1'
                                                         color='text.primary'
                                                     >
-                                                        {fPercent(stat)}
+                                                        {fNumber(stat.cpu)}% cpu {fNumber(stat.memory)}% memory
                                                     </Typography>
                                                 </Grid>
                                             </Grid>
-                                        ))}
+                                        }
                                     </Grid>
                                 )
                             )}
@@ -145,4 +128,4 @@ const CPUCard: React.FC<CPUCardProps> = (props) => {
     );
 };
 
-export default CPUCard;
+export default ProcessesCard;

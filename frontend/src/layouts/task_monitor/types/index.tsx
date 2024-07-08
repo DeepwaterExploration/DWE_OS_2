@@ -31,3 +31,11 @@ export interface MemoryInfo {
 export interface TemperatureInfo {
     processor_temp: number;
 }
+
+export interface processInfo {
+    name: string
+    pid: number
+    cpu: number
+    memory: number
+    cmd: string
+}

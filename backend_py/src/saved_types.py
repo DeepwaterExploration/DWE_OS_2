@@ -51,6 +51,10 @@ class RecordingConfig:
     defaultResolution: str
     defaultFPS: int
 @dataclass
+class ProcessConfig:
+    defaultNumber: int
+@dataclass
 class SavedPrefrences:
     defaultStream: StreamConfig
     defaultRecording: RecordingConfig
+    defaultProcesses: ProcessConfig

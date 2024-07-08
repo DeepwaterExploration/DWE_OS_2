@@ -439,6 +439,19 @@ func serveVideo(w http.ResponseWriter, r *http.Request) {
 	}
 	http.ServeFile(w, r, url)
 }
+func handleProcesses(w http.ResponseWriter, r *http.Request) {
+	processList, err := processes()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(processList)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
 
 var wifiHandler *WifiHandler
 var err error
@@ -475,6 +488,7 @@ func main() {
 		r.HandleFunc("/videos", handleVideo).Methods("GET")
 		r.HandleFunc("/deletevideo", deleteVideo).Methods("GET")
 		r.HandleFunc("/servevideo", serveVideo).Methods("GET")
+		r.HandleFunc("/processes", handleProcesses).Methods("GET")
 
 		// Create a new HTTP server with the CORS (Cross-Origin Resource Sharing) middleware enabled
 		corsOptions := handlers.CORS(
@@ -486,7 +500,7 @@ func main() {
 		// Set up the server address and port
 		const port = 5050
 		const host = "0.0.0.0"
-
+		processes()
 		// Start the server
 		Log.Info(fmt.Sprintf("Server started at http://%s:%d.", host, port))
 		http.Handle("/", corsOptions(r))

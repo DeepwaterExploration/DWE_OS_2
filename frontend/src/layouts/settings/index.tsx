@@ -28,7 +28,7 @@ const Settings: React.FC = () => {
     ];
     const [defaultFPS, setDefaultFPS] = useState(30);
     const INTERVALS = ["30", "25", "20", "15", "10"];
-
+    const [defaultProcessesNumber, setDefaultProcessesNumber] = useState(10);
     const fetchSettings = async () => {
         try {
             const settings: SavedPrefrences = await getSettings();
@@ -38,7 +38,9 @@ const Settings: React.FC = () => {
             setDefaultFormat(settings.defaultRecording.defaultFormat);
             setDefaultResolution(settings.defaultRecording.defaultResolution);
             setDefaultFPS(settings.defaultRecording.defaultFPS);
+            setDefaultProcessesNumber(settings.defaultProcesses.defaultNumber);
         } catch (error) {
+            console.log(error)
             enqueueSnackbar(`Failed to load settings`, { variant: "error" });
         }
     };
@@ -48,7 +50,7 @@ const Settings: React.FC = () => {
         fetchSettings();
     }, [enqueueSnackbar]);
 
-    const save = async (type: "defaultRecording" | "defaultStream", key: string, value: string | number) => {
+    const save = async (type: "defaultRecording" | "defaultStream" | "defaultProcesses", key: string, value: string | number) => {
         await setPrefrence(type, key, value);
         console.log(`setting ${type} ${key} to ${value}`)
         enqueueSnackbar(`Set ${key} to ${value}`, { variant: "info" })
@@ -81,6 +83,10 @@ const Settings: React.FC = () => {
                     buttonLabel={"Save"}
                     buttonOnClick={() => { save("defaultStream", "defaultPort", defaultPort); }}
                     textFieldOnChange={(e) => {
+                        if (Number.isNaN(parseInt(e.replace(/[^\d]/, "")))) {
+                            setDefaultPort(0);
+                            return;
+                        }
                         setDefaultPort(
                             parseInt(e.replace(/[^\d]/, ""))
                         )
@@ -210,6 +216,23 @@ const Settings: React.FC = () => {
                         Save
                     </Button>
                 </div>
+            </SettingsCard>
+            <SettingsCard cardTitle="Task Manager">
+                <TextFieldButton
+                    textInputLabel={"Default Number of Processes to Show"}
+                    textInputValue={defaultProcessesNumber.toString()}
+                    buttonLabel={"Save"}
+                    buttonOnClick={() => { save("defaultProcesses", "defaultNumber", defaultProcessesNumber); }}
+                    textFieldOnChange={(e) => {
+                        if (Number.isNaN(parseInt(e.replace(/[^\d]/, "")))) {
+                            setDefaultProcessesNumber(0);
+                            return;
+                        }
+                        setDefaultProcessesNumber(
+                            parseInt(e.replace(/[^\d]/, ""))
+                        )
+                    }}
+                />
             </SettingsCard>
         </Grid>
     );

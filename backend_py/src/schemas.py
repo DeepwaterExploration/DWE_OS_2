@@ -160,10 +160,17 @@ class StreamConfigSchema(Schema):
     def make_stream_config(self, data, **kwargs):
         return StreamConfig(**data)
 
+class ProcessConfigSchema(Schema):
+    defaultNumber = fields.Int()
+
+    @post_load
+    def make_stream_config(self, data, **kwargs):
+        return ProcessConfig(**data)
+
 class SavedPrefrencesSchema(Schema):
     defaultRecording = fields.Nested(RecordingConfigSchema)
     defaultStream = fields.Nested(StreamConfigSchema)
-
+    defaultProcesses = fields.Nested(ProcessConfigSchema)
     @post_load
     def make_saved_preferences(self, data, **kwargs):
         return SavedPrefrences(**data)

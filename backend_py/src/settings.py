@@ -70,11 +70,16 @@ class DefaultRecording(RecordingConfig):
 class DefaultStream(StreamConfig):
     def __init__(self):
         self.defaultHost = "192.168.2.1"
-        self.defaultPort = "5600"
+        self.defaultPort = 5600
+class DefaultProcesses(ProcessConfig):
+    def __init__(self):
+        self.defaultNumber = 10
 class DefaultPrefrences(SavedPrefrences):
     def __init__(self):
         self.defaultRecording = DefaultRecording()
         self.defaultStream = DefaultStream()
+        self.defaultProcesses = DefaultProcesses()
+
 
 
 class PrefrencesManager:
@@ -93,7 +98,7 @@ class PrefrencesManager:
             self.settings = DefaultPrefrences()
             self._saveSettings()
 
-    def saveValue(self, type: Literal["defaultRecording", "defaultStream"], key: str, value):
+    def saveValue(self, type: Literal["defaultRecording", "defaultStream", "DefaultProcesses"], key: str, value):
         dict = SavedPrefrencesSchema().dump(self.settings)
         dict[type][key]=value
         self.settings=SavedPrefrencesSchema().load(dict)

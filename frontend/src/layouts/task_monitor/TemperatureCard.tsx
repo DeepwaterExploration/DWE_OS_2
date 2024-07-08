@@ -11,7 +11,7 @@ import {
     ListItemText,
     Typography,
 } from "@mui/material";
-import React, { useState } from "react";
+import React from "react";
 
 interface TemperatureCardProps {
     cpuTemp: number;
@@ -19,20 +19,13 @@ interface TemperatureCardProps {
     maxTemp: number;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function chunkArray<T extends any[]>(arr: T, size: number): T[] {
-    return arr.reduce(
-        (acc, _, i) => (i % size ? acc : [...acc, arr.slice(i, i + size)]),
-        []
-    );
-}
+
 
 const TemperatureCard: React.FC<TemperatureCardProps> = (props) => {
-    console.log("maxTemp in TemperatureCard:", props.maxTemp);
     return (
         <Card
             sx={{
-                width: "512px",
+                width: "30%",
                 boxShadow: 3,
                 textAlign: "left",
                 margin: "20px",

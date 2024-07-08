@@ -613,7 +613,7 @@ export async function getSettings(): Promise<SavedPrefrences> {
  * @param value - what to set the exact setting
  * @returns {Promise<void>} - A promise that resolves when the request to change settings is completed
  */
-export async function setPrefrence(type: "defaultRecording" | "defaultStream", key: string, value: string | number) {
+export async function setPrefrence(type: "defaultRecording" | "defaultStream" | "defaultProcesses", key: string, value: string | number) {
     const url = `${DEVICE_API_URL}/setprefrences`
     const data = {
         type: type,
