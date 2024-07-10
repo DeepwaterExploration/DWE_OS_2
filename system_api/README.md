@@ -1,7 +1,13 @@
 go build && clear && ./system_api
 
 ## Usage
+The system api is responsible for:
+- connecting to, disconecting from, and searching for wifi networks
+- Shutting down/restarting the device
+- Get cpu usage and temperature
+- Get running processes
 
+All requests are done to a http server running on port 5050
 #### Available Commands
 
 Here is a list of all the available commands:

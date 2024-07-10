@@ -26,7 +26,7 @@ Here is an overview of the main directories and their purposes:
 ```
 
 ## Usage
-
+The frontend provides a interface for users to interact with cameras and system vitals on a undersea robot. The Devices section allows users to configure cameras and monitor system vital. The communications section controls device internet connection. The files section allow users to view recordings taken on a camera. The options section allows users to configure server prefrences and update DWE OS.
 ### Prerequisites
 
 > **Note** In development mode, React.StrictMode renders components twice to
