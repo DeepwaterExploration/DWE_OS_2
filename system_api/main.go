@@ -316,7 +316,7 @@ func handleVideo(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		if os.IsNotExist(err) {
-			Log.Warn(fmt.Sprint("Creating file"))
+			Log.Warn("Creating file")
 			os.Mkdir(dwePath, 0777)
 			os.Mkdir(videos, 0777)
 			file, err := os.OpenFile(universalJson, os.O_RDONLY|os.O_CREATE, 0777)

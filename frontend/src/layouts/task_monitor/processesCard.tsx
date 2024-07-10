@@ -1,4 +1,4 @@
-import TableRowsIcon from '@mui/icons-material/TableRows';
+import TableRowsIcon from "@mui/icons-material/TableRows";
 import {
     Avatar,
     Card,
@@ -9,6 +9,11 @@ import {
     ListItem,
     ListItemAvatar,
     ListItemText,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableRow,
     Typography,
 } from "@mui/material";
 import React from "react";
@@ -17,10 +22,15 @@ import { fNumber } from "../../utils/formatNumber";
 import { processInfo } from "./types";
 
 interface CPUCardProps {
-    processes: processInfo[]
-    rowLimit: number
+    processes: processInfo[];
+    rowLimit: number;
 }
 
+const DWE_RELATED_PROCESSES = [
+    "gst-launch-1.0", //video streaming
+    "system_api", //The name of the go backend
+
+];
 
 const ProcessesCard: React.FC<CPUCardProps> = (props) => {
     return (
@@ -37,93 +47,96 @@ const ProcessesCard: React.FC<CPUCardProps> = (props) => {
                 <ListItem
                     secondaryAction={
                         <IconButton
-                            edge='end'
-                            aria-label='delete'
+                            edge="end"
+                            aria-label="delete"
                             onClick={() => console.log("delete", `sasa`)}
                         ></IconButton>
                     }
                 >
                     <ListItemAvatar>
                         <Avatar>
-                            <TableRowsIcon
-                                sx={{ fontSize: 30, mx: 0.5 }}
-                            />
+                            <TableRowsIcon sx={{ fontSize: 30, mx: 0.5 }} />
                         </Avatar>
                     </ListItemAvatar>
-                    <ListItemText
-                        primary='Processes'
-                        secondary={''}
-                    />
+                    <ListItemText primary="Processes" secondary={""} />
                 </ListItem>
                 <ListItem>
-                    <Grid
-                        container
-                        spacing={3}
+                    <Table
                         sx={{
-                            flexWrap: "wrap",
-                            flexDirection: "row",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            paddingTop: 3,
+                            display: "grid",
+                            gridTemplateColumns: "auto auto auto auto",
+                            width: "100%",
                         }}
                     >
-                        {props.processes &&
-                            props.processes.filter((a) => a.cpu > 0).sort((a, b) => b.cpu - a.cpu).slice(0, props.rowLimit).map(
-                                (stat, rowIndex) => (
-                                    <Grid
-                                        key={rowIndex}
-                                        container
-                                        item
-                                        xs={12}
-                                        spacing={3}
-                                        justifyContent='space-evenly'
-                                        alignItems='center'
-                                    >
-                                        {
-                                            <Grid
-                                                key={`${stat.cmd}${stat.name}${stat.pid}`}
-                                                item
-                                                xs={12}
-                                                sm={12}
-                                                md={12}
-                                                justifyContent='space-evenly'
-                                            >
-                                                {/* Render your item component here */}
-                                                <Grid
-                                                    flexDirection={"column"}
-                                                    justifyContent='center'
-                                                    alignItems='center'
+                        <TableHead
+                            sx={{
+                                display: "contents", // ensures the header cells use the grid layout
+                            }}
+                        >
+                            <TableRow sx={{ display: "contents" }}>
+                                <TableCell sx={{ padding: "8px" }}>
+                                    PID
+                                </TableCell>
+                                <TableCell sx={{ padding: "8px" }}>
+                                    Name
+                                </TableCell>
+                                <TableCell sx={{ padding: "8px" }}>
+                                    CPU
+                                </TableCell>
+                                <TableCell sx={{ padding: "8px" }}>
+                                    Memory
+                                </TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody
+                            sx={{
+                                display: "contents", // ensures the body cells use the grid layout
+                            }}
+                        >
+                            {props.processes &&
+                                props.processes
+                                    .sort(
+                                        (a, b) =>
+                                            (b.cpu +
+                                                + b.memory) -
+                                            (a.cpu +
+                                                b.memory)
+                                    )
+                                    .filter((a) => a.cpu > 0)
+                                    .slice(0, props.rowLimit)
+                                    .map((stat, rowIndex) => (
+                                        <TableRow key={rowIndex} sx={{ display: "contents" }}>
+                                            <TableCell sx={{ padding: "8px" }}>
+                                                {stat.pid}
+                                            </TableCell>
+                                            <TableCell sx={{ padding: "8px" }}>
+                                                <Typography
+                                                    variant="body1"
+                                                    color={
+                                                        DWE_RELATED_PROCESSES.includes(stat.name)
+                                                            ? "rgb(70, 186, 231)"
+                                                            : "text.primary"
+                                                    }
                                                 >
-                                                    <Typography
-                                                        variant='body1'
-                                                        color='text.primary'
-                                                    >
-                                                        {stat.name} {(stat.cmd !== "" && stat.cmd !== stat.name) ? `(${stat.cmd})` : ""}
-                                                    </Typography>
-                                                    <Typography
-                                                        variant='body1'
-                                                        color='text.primary'
-                                                    >
-                                                        {fNumber(stat.cpu)}% cpu {fNumber(stat.memory)}% memory
-                                                    </Typography>
-                                                </Grid>
-                                            </Grid>
-                                        }
-                                    </Grid>
-                                )
-                            )}
-                    </Grid>
+                                                    {stat.name} {stat.cmd !== "" && stat.cmd !== stat.name
+                                                        ? `(${stat.cmd})`
+                                                        : ""}
+                                                </Typography>
+                                            </TableCell>
+                                            <TableCell sx={{ padding: "8px" }}>
+                                                {fNumber(stat.cpu)}%
+                                            </TableCell>
+                                            <TableCell sx={{ padding: "8px" }}>
+                                                {fNumber(stat.memory)}%
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                        </TableBody>
+                    </Table>
+
                 </ListItem>
             </List>
-            <Divider
-                variant='middle'
-                sx={{
-                    marginTop: 2,
-                    marginBottom: 2,
-                    borderBottomWidth: 3,
-                }}
-            />
+
         </Card>
     );
 };

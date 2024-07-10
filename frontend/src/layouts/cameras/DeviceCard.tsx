@@ -37,7 +37,6 @@ import React, { useEffect, useRef, useState } from "react";
 
 import { styles } from "./style";
 import {
-    CameraFormatSize,
     Control,
     Device,
     SavedPrefrences,
