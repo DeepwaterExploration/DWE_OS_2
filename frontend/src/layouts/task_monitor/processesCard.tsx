@@ -64,7 +64,7 @@ const ProcessesCard: React.FC<CPUCardProps> = (props) => {
                     <Table
                         sx={{
                             display: "grid",
-                            gridTemplateColumns: "auto auto auto auto",
+                            gridTemplateColumns: "auto auto auto auto auto  ",
                             width: "100%",
                         }}
                     >
@@ -74,16 +74,19 @@ const ProcessesCard: React.FC<CPUCardProps> = (props) => {
                             }}
                         >
                             <TableRow sx={{ display: "contents" }}>
-                                <TableCell sx={{ padding: "8px" }}>
+                                <TableCell sx={{ padding: "4px" }}>
                                     PID
                                 </TableCell>
-                                <TableCell sx={{ padding: "8px" }}>
+                                <TableCell sx={{ padding: "4px" }}>
+                                    Status
+                                </TableCell>
+                                <TableCell sx={{ padding: "4px" }}>
                                     Name
                                 </TableCell>
-                                <TableCell sx={{ padding: "8px" }}>
+                                <TableCell sx={{ padding: "4px" }}>
                                     CPU
                                 </TableCell>
-                                <TableCell sx={{ padding: "8px" }}>
+                                <TableCell sx={{ padding: "4px" }}>
                                     Memory
                                 </TableCell>
                             </TableRow>
@@ -97,19 +100,20 @@ const ProcessesCard: React.FC<CPUCardProps> = (props) => {
                                 props.processes
                                     .sort(
                                         (a, b) =>
-                                            (b.cpu +
-                                                + b.memory) -
-                                            (a.cpu +
-                                                b.memory)
+                                            (b.cpu + + b.memory) -
+                                            (a.cpu + b.memory)
                                     )
                                     .filter((a) => a.cpu > 0)
                                     .slice(0, props.rowLimit)
                                     .map((stat, rowIndex) => (
                                         <TableRow key={rowIndex} sx={{ display: "contents" }}>
-                                            <TableCell sx={{ padding: "8px" }}>
+                                            <TableCell sx={{ padding: "4px" }}>
                                                 {stat.pid}
                                             </TableCell>
-                                            <TableCell sx={{ padding: "8px" }}>
+                                            <TableCell sx={{ padding: "4px" }}>
+                                                {stat.status}
+                                            </TableCell>
+                                            <TableCell sx={{ padding: "4px" }}>
                                                 <Typography
                                                     variant="body1"
                                                     color={
@@ -123,10 +127,10 @@ const ProcessesCard: React.FC<CPUCardProps> = (props) => {
                                                         : ""}
                                                 </Typography>
                                             </TableCell>
-                                            <TableCell sx={{ padding: "8px" }}>
+                                            <TableCell sx={{ padding: "4px" }}>
                                                 {fNumber(stat.cpu)}%
                                             </TableCell>
-                                            <TableCell sx={{ padding: "8px" }}>
+                                            <TableCell sx={{ padding: "4px" }}>
                                                 {fNumber(stat.memory)}%
                                             </TableCell>
                                         </TableRow>

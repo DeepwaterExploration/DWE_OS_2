@@ -10,6 +10,7 @@ type ProcessInfo struct {
 	CPU     float64 `json:"cpu"`
 	MemInfo float32 `json:"memory"`
 	Cmd     string  `json:"cmd"`
+	Status  string  `json:"status"`
 }
 
 func processes() ([]ProcessInfo, error) {
@@ -25,7 +26,7 @@ func processes() ([]ProcessInfo, error) {
 		if err != nil {
 			name = "Unknown"
 		}
-		cmd, _ := p.Cmdline()
+		cmd, _ := p.Exe()
 		if err != nil {
 			cmd = "Unknown"
 		}
@@ -41,6 +42,12 @@ func processes() ([]ProcessInfo, error) {
 		if err != nil {
 			meminfo = -1
 		}
+		status, err := p.Status()
+		if err != nil {
+			status = ""
+		} else {
+			status = convertStatusChar(status)
+		}
 
 		processList = append(processList, ProcessInfo{
 			Name:    name,
@@ -48,8 +55,59 @@ func processes() ([]ProcessInfo, error) {
 			CPU:     cpu,
 			MemInfo: meminfo,
 			Cmd:     cmd,
+			Status:  status,
 		})
 	}
 
 	return processList, nil
+}
+
+const (
+	Running = "running"
+	Blocked = "blocked"
+	Idle    = "idle"
+	Lock    = "lock"
+	Sleep   = "sleep"
+	Stop    = "stop"
+	Wait    = "wait"
+	Zombie  = "zombie"
+
+	Daemon   = "daemon"
+	Detached = "detached"
+	System   = "system"
+	Orphan   = "orphan"
+
+	UnknownState = ""
+)
+
+func convertStatusChar(letter string) string {
+	switch letter {
+	case "A":
+		return Daemon
+	case "D", "U":
+		return Blocked
+	case "E":
+		return Detached
+	case "I":
+		return Idle
+	case "L":
+		return Lock
+	case "O":
+		return Orphan
+	case "R":
+		return Running
+	case "S":
+		return Sleep
+	case "T", "t":
+		// "t" is used by Linux to signal stopped by the debugger during tracing
+		return Stop
+	case "W":
+		return Wait
+	case "Y":
+		return System
+	case "Z":
+		return Zombie
+	default:
+		return UnknownState
+	}
 }

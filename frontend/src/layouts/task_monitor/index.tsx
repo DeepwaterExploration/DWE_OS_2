@@ -96,15 +96,9 @@ const TaskMonitor: React.FC = () => {
                             deviceName={cpuInfo.processor_name || "Unknown"}
                             deviceStats={cpuInfo ? cpuInfo.core_usage : []}
                         />
-                        {/* <DiskCard
-            currentDiskUsagePercent={diskInfo.disk_usage}
-           /> */}
-                        {/* <MemoryCard
-            totalMemory={memoryInfo.total_memory}
-            memoryUsagePercent={memoryInfo.memory_usage}
-            />
 
-           */}
+
+
                         <TemperatureCard
                             cpuTemp={temperatureInfo.processor_temp}
                             minTemp={minTemp || 0}

@@ -38,4 +38,5 @@ export interface processInfo {
     cpu: number
     memory: number
     cmd: string
+    status: string
 }
