@@ -2,8 +2,6 @@ import TableRowsIcon from "@mui/icons-material/TableRows";
 import {
     Avatar,
     Card,
-    Divider,
-    Grid,
     IconButton,
     List,
     ListItem,
@@ -58,7 +56,7 @@ const ProcessesCard: React.FC<CPUCardProps> = (props) => {
                             <TableRowsIcon sx={{ fontSize: 30, mx: 0.5 }} />
                         </Avatar>
                     </ListItemAvatar>
-                    <ListItemText primary="Processes" secondary={""} />
+                    <ListItemText primary="Processes" secondary={`Showing ${props.rowLimit} / ${props.processes.length}`} />
                 </ListItem>
                 <ListItem>
                     <Table
