@@ -105,7 +105,7 @@ const calculateFileSize = (seconds: number, fps: number, numpixels: number, enco
         bitrateEST = 5000;
     }
 
-    const formula = 1.47 + (0.092 * Math.log(seconds / sizeProp / fpsProp))
+    const formula = 1.4957659506 + (0.0838012581 * Math.log(seconds / sizeProp / fpsProp)) // r^2 = .641
 
 
     const size = (bitrateEST / 8) * seconds * 1024 * formula
