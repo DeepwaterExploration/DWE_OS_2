@@ -6,6 +6,7 @@ export async function getVideos(): Promise<FilesJson> {
     const config: RequestInit = {
         mode: "cors",
         method: "GET",
+        cache: "no-cache",
         headers: {
             "Content-Type": "application/json",
         },

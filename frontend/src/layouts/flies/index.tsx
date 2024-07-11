@@ -58,6 +58,26 @@ interface previewProps {
 const Preview: React.FC<previewProps> = (props) => {
     const video = props.videoList.find((o) => o.path === props.video);
 
+    function downloadFile(path: string) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', videoProxy(path), true);
+        xhr.responseType = 'blob';
+        xhr.onload = function () {
+            var urlCreator = window.URL || window.webkitURL;
+            var imageUrl = urlCreator.createObjectURL(this.response);
+            var tag = document.createElement('a');
+            tag.href = imageUrl;
+            tag.target = '_blank';
+            tag.download = (path.split("/").at(-1)) ?? "download.mp4";
+            document.body.appendChild(tag);
+            tag.click();
+            document.body.removeChild(tag);
+        };
+        xhr.onerror = err => {
+            alert('Failed to download picture');
+        };
+        xhr.send();
+    }
     return (
         <div style={{ width: "40%", height: "100%" }}>
             {props.video && video ? (
@@ -91,15 +111,19 @@ const Preview: React.FC<previewProps> = (props) => {
                             </sub>
                         ) : undefined}
                     </Typography>
-
+                    <Button
+                        onClick={() => downloadFile(video.path)}
+                    >
+                        Download
+                    </Button>
                     <Table>
                         <TableBody>
                             <TableRow>
                                 <TableCell>Path</TableCell>
                                 <TableCell>
-                                    <a href={"file://///" + video.path}>
-                                        {video.path}
-                                    </a>
+
+                                    {video.path}
+
                                 </TableCell>
                             </TableRow>
 

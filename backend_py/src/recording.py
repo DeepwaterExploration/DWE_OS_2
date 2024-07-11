@@ -78,9 +78,17 @@ class Saving:
             self._process.kill()
             self._process.communicate()
         del self._process
+        videotime = self._time
         self._time = 0
         time.sleep(0.01)
         os.chown(self.final_path, uid, gid) # Don't make our file sudo
+        videoLength = datetime.now().timestamp() - videotime
+        realSize = os.stat(self.final_path).st_size
+        bitRate = 25418
+        if self.encode_type == StreamEncodeTypeEnum.H264:
+            bitRate = 5000
+        guessedSize = (bitRate/8)*videoLength*1024
+        print("{},{},{}".format(videoLength, realSize, guessedSize))
 
     def __str__(self):
         return self._construct_pipeline()

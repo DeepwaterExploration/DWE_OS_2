@@ -60,6 +60,7 @@ import {
     stopVideoSaving,
     unconfigureStream,
 } from "../../utils/api";
+import { fBytes } from "../../utils/formatNumber";
 
 const RESOLUTIONS = [
     "1920x1080",
@@ -94,18 +95,27 @@ interface SupportingTextProps {
     children: React.ReactNode;
 }
 
-const SupportingText: React.FC<SupportingTextProps> = (props) => {
-    return (
-        <Typography
-            sx={{ fontSize: 14 }}
-            color='text.secondary'
-            gutterBottom
-            marginBottom='14px'
-        >
-            {props.children}
-        </Typography>
-    );
-};
+const calculateFileSize = (seconds: number, fps: number, numpixels: number, encode_type: encodeType) => {
+    console.log(seconds, fps, numpixels, encode_type)
+    const size1920 = 1920 * 1080;
+    const defFPS = 30;
+    const sizeProp = size1920 / numpixels;
+    const fpsProp = defFPS / fps;
+
+    const bitrateEST = 25418;
+
+    if (encode_type == encodeType.H264) {
+        const bitrateEST = 5000; // The value we used to find the proportion
+    }
+
+    const formula = 1.47 + (0.092 * Math.log(seconds / sizeProp / fpsProp))
+
+
+    const size = (bitrateEST / 8) * seconds * 1024 * formula
+
+    return size
+}
+
 
 interface DeviceSwitchProps {
     onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -275,7 +285,7 @@ const StreamOptions: React.FC<StreamOptionsProps> = (props) => {
 
     const [fileTime, setFileTime] = useState(0);
     const [countName, setCountName] = useState("00:00:00");
-    const [recordingEncodeType, setRecordingEncodeType] = useState<encodeType>(
+    const [recordingEncodeType, setRecordingEncodeType] = useState(
         encodeType.MJPEG
     );
     const [recordingName, setRecordingName] = useState("$CAMERA-$EPOCH");
@@ -285,37 +295,38 @@ const StreamOptions: React.FC<StreamOptionsProps> = (props) => {
 
 
     useEffect(() => {
-        recording_state(props.device.bus_info)
-            .then(
-                (ping) => setFileTime(ping.time)
-            )
-        setInterval(() => recording_state(props.device.bus_info)
-            .then(
-                (ping) => setFileTime(ping.time)
-            ), 1000)
-    }, [])
+        const fetchFileTime = () => {
+            recording_state(props.device.bus_info)
+                .then((ping) => setFileTime(ping.time))
+                .catch((error) => console.error('Error fetching file time:', error));
+        };
 
+        // Fetch fileTime initially and every 5 seconds
+        fetchFileTime();
+        const intervalId = setInterval(fetchFileTime, 5000);
 
+        return () => clearInterval(intervalId); // Cleanup interval on unmount
+    }, [props.device.bus_info]); // Add props.device.bus_info as a dependency if needed
 
-    setInterval(() => {
-        if (tabPanel === 2 && fileTime !== 0) {
-            const startTime = Date.parse(
-                new Date(fileTime * 1000) as unknown as string
-            );
-            const now = Date.parse(new Date() as unknown as string);
-            const delta = Math.abs(now - startTime);
+    useEffect(() => {
+        const updateCountName = () => {
+            if (tabPanel === 2 && fileTime !== 0) {
+                const now = new Date().getTime() / 1000;
+                const delta = Math.abs(now - fileTime);
 
-            const seconds = Math.floor((delta / 1000) % 60);
-            const minutes = Math.floor((delta / 1000 / 60) % 60);
-            const hours = Math.floor((delta / 1000 / 60 / 60) % 24);
+                const seconds = Math.floor(delta % 60);
+                const minutes = Math.floor((delta / 60) % 60);
+                const hours = Math.floor((delta / 60 / 60) % 24);
 
-            setCountName(() => {
-                return `${("0" + hours).slice(-2)}:${("0" + minutes).slice(
-                    -2
-                )}:${("0" + seconds).slice(-2)}`;
-            });
-        }
-    }, 1000);
+                setCountName(`${("0" + hours).slice(-2)}:${("0" + minutes).slice(-2)}:${("0" + seconds).slice(-2)}`);
+            }
+        };
+
+        // Update countName every ~1 second
+        const intervalId = setInterval(updateCountName, 1050);
+
+        return () => clearInterval(intervalId); // Cleanup interval on unmount
+    }, [fileTime, tabPanel]);
 
     const { enqueueSnackbar } = useSnackbar();
 
@@ -437,7 +448,9 @@ const StreamOptions: React.FC<StreamOptionsProps> = (props) => {
 
     const fetchSettings = async () => {
         try {
+
             const settings: SavedPrefrences = await getSettings();
+            console.log(settings);
             setHost(settings.defaultStream.defaultHost);
             setPort(settings.defaultStream.defaultPort);
             setRecordingFps(settings.defaultRecording.defaultFPS.toString());
@@ -680,7 +693,16 @@ const StreamOptions: React.FC<StreamOptionsProps> = (props) => {
                                     fontWeight: "bold",
                                 }}
                             >
-                                {countName}
+                                {countName} ~{fBytes(
+                                    calculateFileSize(
+                                        (Date.now() / 1000) - fileTime,
+                                        parseInt(fps),
+                                        recordingResolution
+                                            .split("x")
+                                            .map(parseFloat)
+                                            .reduce((x, y) => x * y, 1),
+                                        recordingEncodeType,
+                                    ))}
                             </p>
                         )}
                         <div style={styles.cardContent.divAligned}>
@@ -759,7 +781,11 @@ const StreamOptions: React.FC<StreamOptionsProps> = (props) => {
                                 select
                                 label='Format'
                                 variant='outlined'
-                                value={recordingEncodeType}
+                                defaultValue={
+                                    recordingEncodeType.split(".")[1]
+                                        ? recordingEncodeType.split(".")[1]
+                                        : encodeType.MJPEG
+                                }
                                 onChange={(selected) =>
                                     setRecordingEncodeType(
                                         () => selected.target.value as encodeType

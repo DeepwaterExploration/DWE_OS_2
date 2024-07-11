@@ -475,8 +475,10 @@ export async function startVideoSaving(
     streaming: Recording
 ): Promise<videoData> {
     const url = `${DEVICE_API_URL}/devices/start_recording`;
+    const adjusted = structuredClone(streaming) as any;
+    adjusted.encode_type = adjusted.encode_type.replace("StreamEncodeTypeEnum.", "")
     const data = {
-        ...streaming,
+        ...adjusted,
         bus_info: usbInfo,
     };
     const config: RequestInit = {

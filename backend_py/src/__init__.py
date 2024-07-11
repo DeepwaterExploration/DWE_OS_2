@@ -66,7 +66,7 @@ def main():
     @app.route('/devices/start_recording', methods=['POST'])
     def configure_video():
         stream_info = SaveInfoSchema().load(request.get_json())
-
+        
         stream_time = device_manager.start_file_saving(
             stream_info['bus_info'], stream_info)
 
