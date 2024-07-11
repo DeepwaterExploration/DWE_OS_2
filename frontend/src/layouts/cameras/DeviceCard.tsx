@@ -91,9 +91,6 @@ const useDidMountEffect = (
 const IP_REGEX =
     /^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$/;
 
-interface SupportingTextProps {
-    children: React.ReactNode;
-}
 
 const calculateFileSize = (seconds: number, fps: number, numpixels: number, encode_type: encodeType) => {
     console.log(seconds, fps, numpixels, encode_type)
@@ -102,10 +99,10 @@ const calculateFileSize = (seconds: number, fps: number, numpixels: number, enco
     const sizeProp = size1920 / numpixels;
     const fpsProp = defFPS / fps;
 
-    const bitrateEST = 25418;
+    let bitrateEST = 25418; // Approximate values that were used for all calculations (Still based on encode type)
 
     if (encode_type == encodeType.H264) {
-        const bitrateEST = 5000; // The value we used to find the proportion
+        bitrateEST = 5000;
     }
 
     const formula = 1.47 + (0.092 * Math.log(seconds / sizeProp / fpsProp))
@@ -280,8 +277,8 @@ const StreamOptions: React.FC<StreamOptionsProps> = (props) => {
 
     const [host, setHost] = useState("192.168.2.1");
     const [port, setPort] = useState(5600);
-    const [ipError, setIpError] = useState("");
-    const [portError, setPortError] = useState("");
+    const [ipError, _setIpError] = useState("");
+    const [portError, _setPortError] = useState("");
 
     const [fileTime, setFileTime] = useState(0);
     const [countName, setCountName] = useState("00:00:00");
@@ -996,7 +993,7 @@ const CameraControls: React.FC<CameraControlsProps> = (props) => {
                                         <span>{name}</span>
                                         <Switch
                                             checked={controlValue}
-                                            onChange={(_, checked) => {
+                                            onChange={() => {
                                                 setControlValue(!controlValue);
                                             }}
                                             name={`control-${control_id}`}
