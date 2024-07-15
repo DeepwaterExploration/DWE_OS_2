@@ -142,11 +142,23 @@ class DeviceManager:
             return ""
         device.file_handler.stop()
         return device.file_handler.path
-    def get_is_recording(self, bus_info: str) -> bool:
+    def get_is_recording(self, bus_info: str) -> dict:
         device = self._find_device_with_bus_info(bus_info)
         if not device:
-            return {"recording": False, "time": 0}
-        return {"recording": device.file_handler.started, "time": device.file_handler._time}
+            return {"recording": False, "time": 0, "camera": {},"config": {}}
+        fh = device.file_handler
+        return {
+            "recording": fh.started, 
+            "time": fh._time, 
+            "camera": {
+                'name': fh.cameraData.nickname, 
+                'model': fh.cameraData.model, 
+                'id': fh.cameraData.id},
+            'config':{
+                'resolution': f"{fh.width}x{fh.height}",
+                'format': str(fh.encode_type),
+                'fps': fh.interval.denominator
+            }}
     def set_device_nickname(self, bus_info: str, nickname: str) -> bool:
         '''
         Set a device nickname

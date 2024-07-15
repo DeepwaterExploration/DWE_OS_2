@@ -4,9 +4,10 @@ import React, { useEffect, useState } from "react";
 import { getCPUInfo, getProcesses, getTemperatureInfo } from "./api";
 import CPUCard from "./CPUCard";
 import TemperatureCard from "./TemperatureCard";
+import ProcessesCard from "./processesCard";
+import RecordingUsageCard from "./RecordingUsageCard";
 // import MemoryCard from "./MemoryCard";
 import { CPUInfo, processInfo, TemperatureInfo } from "./types";
-import ProcessesCard from "./processesCard";
 import { getSettings } from "../../utils/api";
 import { SavedPrefrences } from "../../types/types";
 
@@ -25,7 +26,9 @@ const TaskMonitor: React.FC = () => {
     }
     useEffect(() => {
         fetchSettings();
+
     }, [])
+
     useEffect(() => {
         // Track the maximum temperature using a local variable
         let localMaxTemp = maxTemp;
@@ -108,6 +111,7 @@ const TaskMonitor: React.FC = () => {
                             processes={processInfo}
                             rowLimit={numProc}
                         />
+                        <RecordingUsageCard />
                     </>
                 )}
         </Grid>

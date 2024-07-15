@@ -579,7 +579,33 @@ export async function recording_state(usbInfo: string): Promise<recordingPing> {
             return { recording: false, time: 0 } as recordingPing;
         });
 }
+export async function get_all_active_recording_states(): Promise<Array<recordingPing>> {
+    const url = `${DEVICE_API_URL}/devices/all_recording`;
+    const config: RequestInit = {
+        mode: "cors",
+        headers: {
+            "Content-Type": "application/json",
+        },
 
+    };
+
+    return await fetch(url, config)
+        // Process the response data
+        .then((response: Response) => {
+            if (!response.ok) {
+                throw new Error("Failed to restart stream");
+            }
+            return response.json();
+        })
+        .then((data: Array<recordingPing>) => {
+            return data;
+        })
+        .catch((error: Error) => {
+            console.log("Failed to restart stream");
+            console.error(error);
+            return [] as Array<recordingPing>;
+        });
+}
 /**
  * Gets server prefrences
  * @returns {Promise<SavedPrefrences>} - A promise that will resolve when prefrences are reccived.

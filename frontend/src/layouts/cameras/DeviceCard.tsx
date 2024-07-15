@@ -47,6 +47,7 @@ import {
     encodeType,
     optionType,
 } from "../../types/types";
+import { calculateVideoFileSize } from "../../utils/storage";
 import {
     configureStream,
     getNextPort,
@@ -92,26 +93,6 @@ const IP_REGEX =
     /^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$/;
 
 
-const calculateFileSize = (seconds: number, fps: number, numpixels: number, encode_type: encodeType) => {
-    console.log(seconds, fps, numpixels, encode_type)
-    const size1920 = 1920 * 1080;
-    const defFPS = 30;
-    const sizeProp = size1920 / numpixels;
-    const fpsProp = defFPS / fps;
-
-    let bitrateEST = 25418; // Approximate values that were used for all calculations (Still based on encode type)
-
-    if (encode_type == encodeType.H264) {
-        bitrateEST = 5000;
-    }
-
-    const formula = 1.4957659506 + (0.0838012581 * Math.log(seconds / sizeProp / fpsProp)) // r^2 = .641
-
-
-    const size = (bitrateEST / 8) * seconds * 1024 * formula
-
-    return size
-}
 
 
 interface DeviceSwitchProps {
@@ -447,7 +428,6 @@ const StreamOptions: React.FC<StreamOptionsProps> = (props) => {
         try {
 
             const settings: SavedPrefrences = await getSettings();
-            console.log(settings);
             setHost(settings.defaultStream.defaultHost);
             setPort(settings.defaultStream.defaultPort);
             setRecordingFps(settings.defaultRecording.defaultFPS.toString());
@@ -691,7 +671,7 @@ const StreamOptions: React.FC<StreamOptionsProps> = (props) => {
                                 }}
                             >
                                 {countName} ~{fBytes(
-                                    calculateFileSize(
+                                    calculateVideoFileSize(
                                         (Date.now() / 1000) - fileTime,
                                         parseInt(fps),
                                         recordingResolution

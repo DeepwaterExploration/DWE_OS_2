@@ -78,6 +78,14 @@ def main():
         recording = device_manager.get_is_recording(stream_info['bus_info'])
 
         return jsonify(recording)
+    @app.route('/devices/all_recording', methods=["GET"])
+    def get_video_states():
+        devices = device_manager.devices
+        def mapper(device):
+            return device_manager.get_is_recording(device.bus_info)
+        recordings = map(mapper, devices)
+        active = filter(lambda r: r['recording'], recordings)
+        return jsonify(list(active))
     @app.route('/devices/stop_recording', methods=['POST'])
     def unconfigure_video():
         stream_info = SaveInfoSchema(only=['bus_info']).load(request.get_json())
@@ -86,7 +94,7 @@ def main():
             stream_info['bus_info'])
 
         return jsonify({"path":filePath})
-
+    
     @app.route('/devices/set_nickname', methods=['POST'])
     def set_nickname():
         device_nickname = DeviceNicknameSchema().load(request.get_json())

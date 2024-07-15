@@ -325,7 +325,7 @@ pip-selfcheck.json
 release
 release.tar.gz
 **/device_settings.json
-**/server_prefrences.json
+backend_py/server_prefrences.json
 .env
 release.tar.gz.1
 go*linux-*.tar.gz

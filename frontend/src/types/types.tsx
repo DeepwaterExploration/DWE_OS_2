@@ -212,10 +212,22 @@ export interface ReleaseList {
 export interface videoData {
     startTime: number;
 }
+export interface CameraData {
+    name: string,
+    model: string,
+    id: string
 
+}
+export interface CameraRecordingConfig {
+    resolution: string,
+    format: encodeType,
+    fps: number
+}
 export interface recordingPing {
     recording: boolean,
-    time: number
+    time: number,
+    camera: CameraData,
+    config: CameraRecordingConfig
 }
 
 
