@@ -329,3 +329,4 @@ backend_py/server_prefrences.json
 .env
 release.tar.gz.1
 go*linux-*.tar.gz
+DWE_OS-raspbian.iso

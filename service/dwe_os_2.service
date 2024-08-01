@@ -5,7 +5,7 @@ Description=Web Based UVC Control Driver for the DeepWater Exploration exploreHD
 Type=simple
 TimeoutStartSec=0
 Restart=always
-ExecStart=/opt/DWE_OS_2/run_release.sh
+ExecStart=/bin/sh -c 'export DWE_RELEASE=true; /opt/DWE_OS_2/run_release.sh'
 
 [Install]
 WantedBy=multi-user.target

@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # install python
-sudo apt-get install python3
-sudo apt install python3.10-venv
+sudo apt-get install -y python3
+sudo apt-get install -y python3.10-venv
 
 # install golang from offical source
-ommand -v go >/dev/null 2>&1 || {
+command -v go >/dev/null 2>&1 || {
     VERSION="1.22.4"
     if hash dpkg &> /dev/null;
     then
@@ -24,7 +24,7 @@ ommand -v go >/dev/null 2>&1 || {
 # install gstreamer
 sudo apt-get install -y libglib2.0-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-libav gcc
 # install temp monitor
-sudo apt install lm-sensors
+sudo apt install -y lm-sensors
 
 # install npm
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash

@@ -28,8 +28,20 @@ def run_frontend():
     http_server = WSGIServer(('0.0.0.0', 5000), app, log=None)
     http_server.serve_forever()
 
+def check_installs():
+    from shutil import which
+    go_exists = which("go") is not None
+    python_exists = which("python") is not None
+    npm_exists = which("npm") is not None
+    return all([go_exists, python_exists, npm_exists])
 
 if __name__ == '__main__':
+    if os.environ["DWE_RELEASE"] == "true":
+        print(os.curdir())
+        os.chdir("/opt/DWE_OS_2")
+        if (not check_installs()):
+            subprocess.run("sh ./build_project.sh")
+
     frontend_thread = multiprocessing.Process(target=run_frontend)
     frontend_thread.start()
 
