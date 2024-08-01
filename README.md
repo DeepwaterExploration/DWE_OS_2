@@ -28,3 +28,9 @@ cd DWE_OS_2
 ```sh
 ./run_release.sh
 ```
+
+
+## Create raspberry pi ISO image
+- use the raspberry pi imager to install a raspberry pi os lite to a SD Card / USB thumb drive
+- Run ```create_rpi_image.sh``` **Note this assumes the mount point is ```/media/dwe/```**
+- Use DWE_OS-raspbian.iso to install as many copies as possible
