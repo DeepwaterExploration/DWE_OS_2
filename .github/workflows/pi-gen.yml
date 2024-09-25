@@ -1,8 +1,5 @@
 name: Run pi-gen
-on:
-  release:
-    types: [published]
-  workflow_dispatch:
+on: workflow_dispatch
 
 jobs:
   pi-gen:
@@ -124,9 +121,6 @@ jobs:
 
           # System timezone.
           timezone: Europe/London
-
-          # Name of the initial user account.
-          username: pi
 
           # Print all output from pi-gen.
           verbose-output: false
