@@ -2,6 +2,7 @@ name: Run pi-gen
 on:
   release:
     types: [published]
+  workflow_dispatch
 
 jobs:
   pi-gen:
