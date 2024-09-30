@@ -212,9 +212,11 @@ const DevicesLayout = () => {
     const getNextPort = (devs = devices, prefs = savedPreferences) => {
         let allPorts: number[] = [];
         devs.forEach((device) => {
-            device.stream.endpoints.forEach((endpoint) =>
-                allPorts.push(endpoint.port)
-            );
+            // only consider endpoints for configured streams
+            if (device.stream.configured)
+                device.stream.endpoints.forEach((endpoint) =>
+                    allPorts.push(endpoint.port)
+                );
         });
         return allPorts.length > 0
             ? allPorts.sort().reverse()[0] + 1
