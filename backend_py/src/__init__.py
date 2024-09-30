@@ -165,6 +165,16 @@ def main():
         req: SavedPrefrences = SavedPrefrencesSchema().load(request.get_json())
         preferences_manager.save(req)
         return jsonify({})
+    
+    '''
+    Discovery
+    '''
+    @app.route('/set_default_stream_host')
+    def set_default_stream_host():
+        preferences = preferences_manager.get_preferences()
+        preferences.default_stream.host = request.remote_addr
+        preferences_manager.save(preferences)
+        return jsonify({})
 
     # create the server and run everything
     http_server = WSGIServer(('0.0.0.0', 8080), app, log=None)
