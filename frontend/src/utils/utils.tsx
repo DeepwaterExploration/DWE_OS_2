@@ -75,9 +75,11 @@ export const hash = function (str: string) {
     return hash;
 };
 
-export const hostAddress: string = window.location.hostname;
-// export const hostAddress: string = "dweos.local"; // for dev purposes
-export const BACKEND_API_URL = (hostname?: string) =>
-    `http://${hostname || window.location.hostname}:8080`;
-export const BACKEND_API_WS = (hostname?: string) =>
-    `ws://${hostname || window.location.hostname}:9002`;
+export const BACKEND_API_URL = (hostname?: string) => {
+    if (!hostname) hostname = window.location.hostname;
+    return `http://${import.meta.env.DEV ? localStorage.getItem("hostname") || hostname : hostname}:8080`;
+};
+export const BACKEND_API_WS = (hostname?: string) => {
+    if (!hostname) hostname = window.location.hostname;
+    return `ws://${import.meta.env.DEV ? localStorage.getItem("hostname") || hostname : hostname}:9002`;
+};

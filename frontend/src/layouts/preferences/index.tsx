@@ -13,6 +13,11 @@ const PreferencesLayout = () => {
     const [host, setHost] = useState(undefined);
     const [port, setPort] = useState(undefined);
 
+    // DEVELOPMENT ONLY
+    const [hostname, setHostname] = useState(
+        localStorage.getItem("hostname") || window.location.hostname
+    );
+
     useEffect(() => {
         getSettings().then((settings) => {
             if (settings) {
@@ -21,6 +26,10 @@ const PreferencesLayout = () => {
             }
         });
     }, []);
+
+    useEffect(() => {
+        localStorage.setItem("hostname", hostname);
+    }, [hostname]);
 
     return (
         <Grid
@@ -70,6 +79,28 @@ const PreferencesLayout = () => {
                         }}
                     >
                         Save
+                    </Button>
+                </SettingsCard>
+            )}
+
+            {import.meta.env.DEV && (
+                <SettingsCard cardTitle='Development Options'>
+                    <TextField
+                        sx={styles.settingsButton.textInput}
+                        label='Hostname'
+                        onChange={(e) => setHostname(e.target.value)}
+                        value={hostname}
+                        variant='outlined'
+                        size='small'
+                    />
+                    <Button
+                        sx={styles.settingsButton.button}
+                        variant='contained'
+                        onClick={() => {
+                            setHostname(window.location.hostname);
+                        }}
+                    >
+                        Reset
                     </Button>
                 </SettingsCard>
             )}
