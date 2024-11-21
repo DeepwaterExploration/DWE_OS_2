@@ -1,8 +1,9 @@
 import os
 from dataclasses import dataclass
-from typing import List
+from enum import Enum
+from typing import List, Dict, Union, Optional
 import re
-import time
+import logging
 
 @dataclass
 class PWMChannel:
@@ -15,7 +16,62 @@ class PWMChip:
     chip: int
     channels: List[PWMChannel]
 
-class PWMManager:
+@dataclass
+class PWMPin:
+    chip_id: int
+    channel_id: int
+
+class DeviceFamily(Enum):
+    RASPBERRY_PI = 0
+    JETSON = 1
+    UNKNOWN = 2
+
+@dataclass
+class DeviceMapping:
+    device_family: DeviceFamily
+    model: str
+    pin_mappings: Dict[Union[int, str], PWMPin]
+
+    def get_pin_mapping(self, pin: Union[int, str]) -> PWMPin:
+        return self.pin_mappings[pin]
+
+class DeviceRegistry:
+    def __init__(self) -> None:
+        self.device_mappings: List[DeviceMapping] = []
+        
+        self.register_device_mapping(DeviceMapping(
+            DeviceFamily.RASPBERRY_PI, '4b', {
+                18: PWMPin(0, 0),
+                19: PWMPin(0, 1)
+            }
+        ))
+
+        self.register_device_mapping(DeviceMapping(
+            DeviceFamily.RASPBERRY_PI, '5', {
+                18: PWMPin(2, 2),
+                19: PWMPin(2, 3)
+            }
+        ))
+
+        self.register_device_mapping(DeviceMapping(
+            DeviceFamily.JETSON, 'ConnectTech-NGX024', {
+                12: PWMPin(2, 0),
+                13: PWMPin(3, 0)
+            }
+        ))
+
+
+    def register_device_mapping(self, device_mapping: DeviceMapping):
+        self.device_mappings.append(device_mapping)
+
+    def get_device_mapping(self, device_family: DeviceFamily, model: str) -> Optional[DeviceMapping]:
+        for mapping in self.device_mappings:
+            if mapping.device_family == device_family and mapping.model == model:
+                return mapping
+        logging.warning('Unknown device, falling back to base pwm manager. (This should still work, but does not use recommended pin mappings)')
+        return None
+
+class BasePWMManager:
     PWM_BASE_PATH = '/sys/class/pwm'
     CHIP_REGEX = re.compile(r"pwmchip(\d+)")
     CHANNEL_REGEX = re.compile(r"pwm(\d+)")
@@ -121,12 +177,45 @@ class PWMManager:
 
                 self.chips.append(PWMChip(chip=chip_number, channels=channels))
 
-pwm_manager = PWMManager()
+class GlobalPWMManager(BasePWMManager):
 
-pwm_manager.set_channel_frequency(2, 0, 60)
-pwm_manager.set_channel_duty_cycle(2, 0, 50)
-pwm_manager.enable_channel(2, 0)
+    def __init__(self, device_family: DeviceFamily = DeviceFamily.UNKNOWN, model: str = '') -> None:
+        super().__init__()
 
-time.sleep(15)
+        self.registry = DeviceRegistry()
+        self.current_mapping = self.registry.get_device_mapping(device_family, model)
 
-pwm_manager.disable_channel(2, 0)
+        # Device family is not known or model is not known
+        if not self.current_mapping:
+            # Dynamically generate fake pin mappings corresponding to chip:channel pin number
+            # This is to keep things simpler code wise, but also make sense to the user
+            pin_mappings = {}
+            # Start default pin at 1
+            for chip in self.chips:
+                for channel in chip.channels:
+                    pin_mappings[f'{chip.chip}:{channel.channel}'] = PWMPin(chip, channel)
+
+            self.current_mapping = DeviceMapping(
+                device_family, model, pin_mappings
+            )
+        
+        print(self.current_mapping.__dict__)
+
+    def enable_pin(self, pin_info: Union[str, int]):
+        self.enable_channel(
+            **self._get_pwm_pin(pin_info).__dict__
+        )
+
+    def disable_pin(self, pin_info: Union[str, int]):
+        self.disable_channel(
+            **self._get_pwm_pin(pin_info).__dict__
+        )
+
+    def set_pin_frequency(self, pin_info: Union[str, int], frequency: float):
+        self.set_channel_frequency(**self._get_pwm_pin(pin_info).__dict__, frequency=frequency)
+    
+    def set_pin_duty_cycle(self, pin_info: Union[str, int], duty_cycle: float):
+        self.set_channel_duty_cycle(**self._get_pwm_pin(pin_info).__dict__, duty_cycle=duty_cycle)
+
+    def _get_pwm_pin(self, pin_info: Union[str, int]) -> PWMPin:
+        return self.current_mapping.get_pin_mapping(pin_info)
