@@ -36,7 +36,7 @@ import CamerasPage from "../../layouts/cameras";
 import LogsPage from "../../layouts/logs_page";
 import WifiPage from "../../layouts/wifi";
 import { RouteItem, routeType } from "../../types/types";
-import LightsLayout from "../../layouts/lights";
+import GPIOLayout from "../../layouts/gpio";
 import PreferencesLayout from "../../layouts/preferences";
 import TerminalLayout from "../../layouts/terminal";
 
@@ -141,14 +141,14 @@ const generateRoutes = (features: FeatureSupport) => {
             default: true,
         },
         {
-            route: "/devices/lights",
-            component: <LightsLayout />,
+            route: "/devices/gpio",
+            component: <GPIOLayout />,
             exact: true,
             icon: <LightbulbIcon />,
             category: "Devices",
             type: routeType.COLLAPSE,
-            name: "Lights",
-            key: "lights",
+            name: "GPIO",
+            key: "gpio",
             default: false,
         },
         {

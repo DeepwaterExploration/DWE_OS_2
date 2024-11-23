@@ -2,8 +2,6 @@ from ctypes import *
 import sys
 import signal
 
-from dataclasses import dataclass
-
 from flask import Flask, jsonify
 from flask_cors import CORS
 from gevent.pywsgi import WSGIServer
@@ -52,8 +50,9 @@ class Server:
         self.device_manager = DeviceManager(
             settings_manager=self.settings_manager, broadcast_server=self.broadcast_server)
         
-        # Lights
-        self.light_manager = LightManager(create_pwm_controllers())
+        # Lights and PWM
+        self.pwm_manager = GlobalPWMManager(device_family=DeviceFamily.JETSON, model='CT-NGX024')
+        # self.pwm_manager = GlobalPWMManager()
 
         # Wifi support
         if self.feature_support.wifi:
@@ -73,14 +72,14 @@ class Server:
 
         # Set the app configs
         self.app.config['device_manager'] = self.device_manager
-        self.app.config['light_manager'] = self.light_manager
+        self.app.config['pwm_manager'] = self.pwm_manager
         self.app.config['preferences_manager'] = self.preferences_manager
         self.app.config['log_handler'] = self.log_handler
         self.app.config['system_manager'] = self.system_manager
 
         # Register the blueprints
         self.app.register_blueprint(cameras_bp)
-        self.app.register_blueprint(lights_bp)
+        self.app.register_blueprint(gpio_bp)
         self.app.register_blueprint(logs_bp)
         self.app.register_blueprint(preferences_bp)
         self.app.register_blueprint(system_bp)
@@ -94,7 +93,7 @@ class Server:
         def exit_clean(sig, frame):
             logging.info('Shutting down')
 
-            self.light_manager.cleanup()
+            self.pwm_manager.cleanup()
             self.http_server.stop()
             self.device_manager.stop_monitoring()
             self.broadcast_server.kill()

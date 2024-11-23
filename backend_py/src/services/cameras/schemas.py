@@ -6,34 +6,6 @@ from .saved_types import *
 from .device import DeviceType
 
 
-class UnionField(fields.Field):
-
-    valid_types: typing.List[fields.Field]
-
-    def __init__(self, *valid_types: typing.List[fields.Field]):
-        self.valid_types = valid_types
-
-    def _serialize(self, value, attr: str | None, data: typing.Mapping[str, typing.Any], **kwargs):
-        errors = []
-        for valid_type in self.valid_types:
-            try:
-                valid_type.serialize(value, attr)
-            except exceptions.ValidationError as error:
-                errors.append(error)
-        if len(errors) > 0:
-            raise exceptions.ValidationError(errors)
-
-    def _deserialize(self, value, attr: str | None, data: typing.Mapping[str, typing.Any] | None, **kwargs):
-        errors = []
-        for valid_type in self.valid_types:
-            try:
-                valid_type.deserialize(value, attr)
-            except exceptions.ValidationError as error:
-                errors.append(error)
-        if len(errors) > 0:
-            raise exceptions.ValidationError(errors)
-
-
 class CameraIntervalSchema(Schema):
     numerator = fields.Int()
     denominator = fields.Int()

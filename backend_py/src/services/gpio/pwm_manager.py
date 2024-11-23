@@ -1,9 +1,10 @@
 import os
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Dict, Union, Optional
+from typing import List, Dict, Union, Optional, Mapping, Any
 import re
 import logging
+from marshmallow import Schema, fields, exceptions
 
 @dataclass
 class PWMChannel:
@@ -30,10 +31,19 @@ class DeviceFamily(Enum):
 class DeviceMapping:
     device_family: DeviceFamily
     model: str
-    pin_mappings: Dict[Union[int, str], PWMPin]
+    pin_mappings: Dict[str, PWMPin]
 
-    def get_pin_mapping(self, pin: Union[int, str]) -> PWMPin:
+    def get_pin_mapping(self, pin: str) -> PWMPin:
         return self.pin_mappings[pin]
+
+class PWMPinSchema(Schema):
+    chip_id = fields.Int()
+    channel_id = fields.Int()
+
+class DeviceMappingSchema(Schema):
+    device_family = fields.Enum(DeviceFamily)
+    model = fields.Str()
+    pin_mappings = fields.Dict(keys=fields.Str(), values=fields.Nested(PWMPinSchema))
 
 class DeviceRegistry:
     def __init__(self) -> None:
@@ -41,22 +51,22 @@ class DeviceRegistry:
         
         self.register_device_mapping(DeviceMapping(
             DeviceFamily.RASPBERRY_PI, '4b', {
-                18: PWMPin(0, 0),
-                19: PWMPin(0, 1)
+                '18': PWMPin(0, 0),
+                '19': PWMPin(0, 1)
             }
         ))
 
         self.register_device_mapping(DeviceMapping(
             DeviceFamily.RASPBERRY_PI, '5', {
-                18: PWMPin(2, 2),
-                19: PWMPin(2, 3)
+                '18': PWMPin(2, 2),
+                '19': PWMPin(2, 3)
             }
         ))
 
         self.register_device_mapping(DeviceMapping(
-            DeviceFamily.JETSON, 'ConnectTech-NGX024', {
-                12: PWMPin(2, 0),
-                13: PWMPin(3, 0)
+            DeviceFamily.JETSON, 'CT-NGX024', {
+                '12': PWMPin(2, 0),
+                '13': PWMPin(3, 0)
             }
         ))
 
@@ -147,6 +157,14 @@ class BasePWMManager:
         with open(file, 'w') as export_file:
             export_file.write(str(value))
     
+    def cleanup(self):
+        for chip in self.chips:
+            for channel in chip.channels:
+                try:
+                    self.disable_channel(chip.chip, channel.channel)
+                except OSError:
+                    continue
+
     def _enumerate(self):
         for chip_entry in os.listdir(self.PWM_BASE_PATH):
             # Get the match of the chip
@@ -193,29 +211,46 @@ class GlobalPWMManager(BasePWMManager):
             # Start default pin at 1
             for chip in self.chips:
                 for channel in chip.channels:
-                    pin_mappings[f'{chip.chip}:{channel.channel}'] = PWMPin(chip, channel)
+                    pin_mappings[f'{chip.chip}:{channel.channel}'] = PWMPin(chip.chip, channel.channel)
 
             self.current_mapping = DeviceMapping(
                 device_family, model, pin_mappings
             )
-        
-        print(self.current_mapping.__dict__)
+
+    def get_pins(self) -> dict:
+        out_dict = {}
+        for pin_info in self.current_mapping.pin_mappings:
+            channel = self._get_channel_from_pin(pin_info)
+            pin_mapping = self.current_mapping.get_pin_mapping(pin_info)
+            out_dict[pin_info] = {
+                'frequency': channel.frequency,
+                'duty_cycle': channel.duty_cycle,
+                'chip_id': pin_mapping.chip_id,
+                'channel_id': pin_mapping.channel_id,
+            }
+        return out_dict
+
+    def get_pin_mapping(self):
+        return DeviceMappingSchema().dump(self.current_mapping)
 
     def enable_pin(self, pin_info: Union[str, int]):
         self.enable_channel(
             **self._get_pwm_pin(pin_info).__dict__
         )
 
-    def disable_pin(self, pin_info: Union[str, int]):
+    def disable_pin(self, pin_info: str):
         self.disable_channel(
             **self._get_pwm_pin(pin_info).__dict__
         )
 
-    def set_pin_frequency(self, pin_info: Union[str, int], frequency: float):
+    def set_pin_frequency(self, pin_info: str, frequency: float):
         self.set_channel_frequency(**self._get_pwm_pin(pin_info).__dict__, frequency=frequency)
     
-    def set_pin_duty_cycle(self, pin_info: Union[str, int], duty_cycle: float):
+    def set_pin_duty_cycle(self, pin_info: str, duty_cycle: float):
         self.set_channel_duty_cycle(**self._get_pwm_pin(pin_info).__dict__, duty_cycle=duty_cycle)
 
-    def _get_pwm_pin(self, pin_info: Union[str, int]) -> PWMPin:
+    def _get_channel_from_pin(self, pin_info: str):
+        return self._get_channel(**self._get_pwm_pin(pin_info).__dict__)
+
+    def _get_pwm_pin(self, pin_info: str) -> PWMPin:
         return self.current_mapping.get_pin_mapping(pin_info)

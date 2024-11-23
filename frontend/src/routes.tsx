@@ -13,6 +13,6 @@ import LogsPage from "./layouts/logs_page";
 import WifiPage from "./layouts/wifi";
 import { RouteItem, routeType } from "./types/types";
 import React from "react";
-import LightsLayout from "./layouts/lights";
+import GPIOLayout from "./layouts/gpio";
 import PreferencesLayout from "./layouts/preferences";
 import TerminalLayout from "./layouts/terminal";
