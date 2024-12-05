@@ -1,12 +1,12 @@
-import Accordion from "@mui/material/Accordion";
-import AccordionSummary from "@mui/material/AccordionSummary";
-import Typography from "@mui/material/Typography";
-import AccordionDetails from "@mui/material/AccordionDetails";
+import Box from "@mui/material/Box";
+import Dialog from "@mui/material/Dialog";
 import FormGroup from "@mui/material/FormGroup";
 import Button from "@mui/material/Button";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import DialogTitle from "@mui/material/DialogTitle";
+import Divider from "@mui/material/Divider";
+import DialogContent from "@mui/material/DialogContent";
 
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { Control, controlType, Device } from "../../types";
 import { LineBreak } from "../../../../components/LineBreak";
 import DeviceContext from "../../../../contexts/DeviceContext";
@@ -18,6 +18,8 @@ import MenuControl from "./MenuControl";
 
 export const CameraControls: React.FC = () => {
     const { device } = useContext(DeviceContext) as { device: Device };
+
+    const [dialogOpen, setDialogOpen] = useState(false);
 
     const controls = device.controls;
     const bus_info = device.bus_info;
@@ -69,33 +71,41 @@ export const CameraControls: React.FC = () => {
     };
 
     return (
-        <Accordion
-            style={{
-                width: "100%",
-                marginTop: "20px",
-                visibility: "visible",
-            }}
-        >
-            <AccordionSummary
-                expandIcon={<ExpandMoreIcon />}
-                aria-controls='panel2a-content'
-                id='panel2a-header'
+        <Box>
+            <Button
+                sx={{ width: "100%", marginTop: "10px" }}
+                variant='outlined'
+                onClick={() => setDialogOpen(true)}
             >
-                <Typography fontWeight='800'>Camera Controls</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-                <FormGroup style={{ marginTop: "20px" }}>
-                    {controls.map(renderControl)}
-                </FormGroup>
-                <LineBreak />
-                <Button
-                    sx={{ width: "100%" }}
-                    variant='outlined'
-                    onClick={resetControls}
+                Open Controls
+            </Button>
+            <Dialog
+                fullWidth
+                open={dialogOpen}
+                onClose={() => setDialogOpen(false)}
+                sx={{
+                    overflow: "hidden",
+                }}
+            >
+                <DialogTitle>Camera Controls</DialogTitle>
+                <Divider />
+                <DialogContent
+                    sx={{
+                        overflowY: "auto",
+                        maxHeight: "80%",
+                    }}
                 >
-                    Reset Controls
-                </Button>
-            </AccordionDetails>
-        </Accordion>
+                    <FormGroup>{controls.map(renderControl)}</FormGroup>
+                    <LineBreak />
+                    <Button
+                        variant='contained'
+                        fullWidth
+                        onClick={resetControls}
+                    >
+                        Reset Controls
+                    </Button>
+                </DialogContent>
+            </Dialog>
+        </Box>
     );
 };
