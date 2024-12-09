@@ -7,13 +7,14 @@ import IconButton from "@mui/material/IconButton";
 import Slider from "@mui/material/Slider";
 import TextField from "@mui/material/TextField";
 
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 
 import { LineBreak } from "../../../components/LineBreak";
 import { styles } from "../../../style";
 import { PWMPinCard } from "../types";
 import LightContext from "../../../contexts/LightContext";
 import CloseIcon from "@mui/icons-material/Close";
+import { setPin } from "../api";
 
 interface PWMCardProps {
     pwmCard: PWMPinCard;
@@ -21,6 +22,10 @@ interface PWMCardProps {
 
 const PWMCard: React.FC<PWMCardProps> = ({ pwmCard }) => {
     const [pwmValue, setPWMValue] = useState(pwmCard.value);
+
+    useEffect(() => {
+        setPin(pwmCard.pin_name, pwmValue.frequency, pwmValue.duty_cycle);
+    }, [pwmValue]);
 
     return (
         <Card
@@ -49,6 +54,12 @@ const PWMCard: React.FC<PWMCardProps> = ({ pwmCard }) => {
                     variant='standard'
                     fullWidth
                     value={pwmValue.frequency}
+                    onChange={(e) =>
+                        setPWMValue({
+                            ...pwmValue,
+                            frequency: parseInt(e.target.value),
+                        })
+                    }
                     margin='normal'
                 />
                 <Paper

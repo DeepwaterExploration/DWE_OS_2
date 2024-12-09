@@ -29,9 +29,9 @@ class Server:
         # initialize features
         self.feature_support = feature_support
 
-        self.app.register_error_handler(ValidationError, self._handle_validation_error)
-        self.app.register_error_handler(DeviceNotFoundException, self._handle_device_not_found)
-        self.app.register_error_handler(Exception, self._handle_server_error)
+        # self.app.register_error_handler(ValidationError, self._handle_validation_error)
+        # self.app.register_error_handler(DeviceNotFoundException, self._handle_device_not_found)
+        # self.app.register_error_handler(Exception, self._handle_server_error)
 
         # avoid sorting the keys to keep the way we sort it in the backend
         self.app.json.sort_keys = False
@@ -45,13 +45,14 @@ class Server:
         # Settings
         self.settings_manager = SettingsManager(settings_path)
         self.preferences_manager = PreferencesManager(settings_path)
+        self.pin_state_storage = PinStateStorage(settings_path)
 
         # Device Manager
         self.device_manager = DeviceManager(
             settings_manager=self.settings_manager, broadcast_server=self.broadcast_server)
         
         # Lights and PWM
-        self.pwm_manager = GlobalPWMManager(device_family=DeviceFamily.JETSON, model='CT-NGX024')
+        self.pwm_manager = GlobalPWMManager(self.pin_state_storage, device_family=DeviceFamily.JETSON, model='CT-NGX024')
         # self.pwm_manager = GlobalPWMManager()
 
         # Wifi support

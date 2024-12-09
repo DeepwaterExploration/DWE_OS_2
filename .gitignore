@@ -328,4 +328,5 @@ release
 release.tar.gz
 **/device_settings.json
 **/server_preferences.json
+**/pin_storage.json
 .env

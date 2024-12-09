@@ -27,7 +27,7 @@ def set_intensity():
 
     req = request.get_json()
     pin_set = PinSetSchema().load(req)
-    pwm_manager.set_pin_duty_cycle(pin_set['pin'], pin_set['duty_cycle'])
     pwm_manager.set_pin_frequency(pin_set['pin'], pin_set['frequency'])
+    pwm_manager.set_pin_duty_cycle(pin_set['pin'], pin_set['duty_cycle'])
 
     return jsonify({})
