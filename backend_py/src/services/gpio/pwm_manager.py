@@ -129,8 +129,8 @@ class BasePWMManager:
         period_ns = int((1 / frequency) * 1_000_000_000)
         period_path = os.path.join(self._get_channel_path(chip_id, channel_id), 'period')
 
-        self.enable_channel(chip_id, channel_id)
         self._echo(period_path, period_ns)
+        self.enable_channel(chip_id, channel_id)
 
     def _set_duty_cycle(self, chip_id: int, channel_id: int, duty_cycle: float, frequency: float):
         if frequency == 0:
@@ -142,6 +142,7 @@ class BasePWMManager:
 
         # Write the duty cycle value
         self._echo(duty_cycle_path, duty_cycle_ns)
+        self.enable_channel(chip_id, channel_id)
 
     def _get_chip_path(self, chip_id: int) -> str:
         return os.path.join(self.PWM_BASE_PATH, f'pwmchip{chip_id}')
@@ -195,7 +196,7 @@ class BasePWMManager:
                 export_path = os.path.join(chip_path, 'export')
                 for channel_number in range(npwm):
                     pwm_channel_path = os.path.join(chip_path, f'pwm{channel_number}')
-                    self.enable_channel(chip_number, channel_number)
+                    # self.enable_channel(chip_number, channel_number)
                     if not os.path.exists(pwm_channel_path):
                         # create the export
                         try:
@@ -233,10 +234,9 @@ class GlobalPWMManager(BasePWMManager):
             )
 
         initial_pin_states = self.pin_storage.get_pin_states()
-        print(self.current_mapping)
         for pin in initial_pin_states:
-            self.set_pin_frequency(pin, initial_pin_states[pin].duty_cycle)
-            self.set_pin_duty_cycle(pin, initial_pin_states[pin].frequency)
+            self.set_pin_frequency(pin, initial_pin_states[pin].frequency)
+            self.set_pin_duty_cycle(pin, initial_pin_states[pin].duty_cycle)
 
     def get_pins(self) -> dict:
         out_dict = {}
@@ -267,14 +267,12 @@ class GlobalPWMManager(BasePWMManager):
     def set_pin_frequency(self, pin_info: str, frequency: float):
         if frequency == 0:
             return
-        print(frequency)
         pwm_pin = self._get_pwm_pin(pin_info)
         self.set_channel_frequency(**pwm_pin.__dict__, frequency=frequency)
 
         self.pin_storage.save_pin_frequency(pin_info, frequency)
     
     def set_pin_duty_cycle(self, pin_info: str, duty_cycle: float):
-        print(duty_cycle)
         self.set_channel_duty_cycle(**self._get_pwm_pin(pin_info).__dict__, duty_cycle=duty_cycle)
 
         self.pin_storage.save_pin_duty_cycle(pin_info, duty_cycle)

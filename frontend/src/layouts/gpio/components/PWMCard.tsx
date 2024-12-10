@@ -54,12 +54,17 @@ const PWMCard: React.FC<PWMCardProps> = ({ pwmCard }) => {
                     variant='standard'
                     fullWidth
                     value={pwmValue.frequency}
-                    onChange={(e) =>
-                        setPWMValue({
-                            ...pwmValue,
-                            frequency: parseInt(e.target.value),
-                        })
-                    }
+                    onChange={(e) => {
+                        const newValue = parseFloat(e.target.value); // Parse as float instead of integer
+                        if (!isNaN(newValue) && newValue >= 0.1) {
+                            // Ensure it is a valid number and >= 0.1
+                            setPWMValue({
+                                ...pwmValue,
+                                frequency: newValue,
+                            });
+                        }
+                    }}
+                    inputProps={{ min: 0.1, step: 0.1 }}
                     margin='normal'
                 />
                 <Paper
@@ -89,6 +94,7 @@ const PWMCard: React.FC<PWMCardProps> = ({ pwmCard }) => {
                         aria-labelledby='duty-cycle-slider'
                         min={0}
                         max={100}
+                        step={0.1}
                         valueLabelDisplay='auto'
                     />
                 </Paper>
