@@ -6,6 +6,8 @@ import re
 import logging
 from marshmallow import Schema, fields, exceptions
 from .pin_storage import PinStateStorage, PinState
+import serial
+from abc import ABC, abstractmethod
 
 @dataclass
 class PWMChannel:
@@ -82,7 +84,32 @@ class DeviceRegistry:
         logging.warning('Unknown device, falling back to base pwm manager. (This should still work, but does not use recommended pin mappings)')
         return None
 
-class BasePWMManager:
+class PWMManager(ABC):
+    @abstractmethod
+    def get_pins(self) -> Dict[str, Dict]:
+        pass
+
+    @abstractmethod
+    def enable_pin(self, pin_info: str):
+        pass
+
+    @abstractmethod
+    def disable_pin(self, pin_info: str):
+        pass
+
+    @abstractmethod
+    def set_pin_frequency(self, pin_info: str, frequency: float):
+        pass
+
+    @abstractmethod
+    def set_pin_duty_cycle(self, pin_info: str, duty_cycle: float):
+        pass
+
+    @abstractmethod
+    def cleanup(self):
+        pass
+
+class SystemPWMManager:
     PWM_BASE_PATH = '/sys/class/pwm'
     CHIP_REGEX = re.compile(r"pwmchip(\d+)")
     CHANNEL_REGEX = re.compile(r"pwm(\d+)")
@@ -210,7 +237,7 @@ class BasePWMManager:
 
         print(self.chips)
 
-class GlobalPWMManager(BasePWMManager):
+class GlobalPWMManager(SystemPWMManager, PWMManager):
 
     def __init__(self, pin_storage: PinStateStorage, device_family: DeviceFamily = DeviceFamily.UNKNOWN, model: str = '') -> None:
         super().__init__()
@@ -282,3 +309,66 @@ class GlobalPWMManager(BasePWMManager):
 
     def _get_pwm_pin(self, pin_info: str) -> PWMPin:
         return self.current_mapping.get_pin_mapping(pin_info)
+
+
+class SerialPWMManager(PWMManager):
+    def __init__(self, interface: str, pin_storage: PinStateStorage):
+        self.interface = interface
+        self.baud_rate = 9600
+        self.serial_conn = serial.Serial(self.interface, self.baud_rate, timeout=1)
+        self.pin_storage = pin_storage
+        
+        self.duty_cycle = 0
+        self.frequency = 0
+
+    def get_pins(self):
+        out_dict = {}
+        out_dict['serial1'] = {
+            'frequency': self.frequency,
+            'duty_cycle': self.duty_cycle,
+            'chip_id': 0,
+            'channel_id': 0,
+        }
+        return out_dict
+
+    def set_pin_frequency(self, pin_info: str, frequency: float):
+        self.frequency = frequency
+        self.set(self.frequency, self.duty_cycle)
+
+    def set_pin_duty_cycle(self, pin_info: str, duty_cycle):
+        self.duty_cycle = duty_cycle
+        self.set(self.frequency, self.duty_cycle)
+
+    def _send(self, command: str):
+        logging.info(command)
+        if self.serial_conn.is_open:
+            command_to_send = command + "\n"  # Append newline for command termination
+            self.serial_conn.write(command_to_send.encode('utf-8'))
+        else:
+            raise ConnectionError("Serial connection is not open.")
+
+    def set(self, frequency: float, duty_cycle: float):
+        if not (0 <= duty_cycle <= 100):
+            raise ValueError("Duty cycle must be between 0 and 100.")
+        
+        if frequency < 0:
+            raise ValueError("Frequency must be non-negative.")
+        
+        command = f"{frequency},{duty_cycle}"
+        self._send(command)
+
+    def disable_pin(self, pin_info):
+        pass
+
+    def enable_pin(self, pin_info):
+        pass
+
+    def stop(self):
+        self.set(0, 0)
+
+    def cleanup(self):
+        self.serial_conn.close()
+
+    def close(self):
+        if self.serial_conn.is_open:
+            self.serial_conn.close()
