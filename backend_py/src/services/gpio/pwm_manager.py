@@ -317,6 +317,11 @@ class SerialPWMManager(PWMManager):
         self.baud_rate = 9600
         self.serial_conn = serial.Serial(self.interface, self.baud_rate, timeout=1)
         self.pin_storage = pin_storage
+
+        initial_pin_states = self.pin_storage.get_pin_states()
+        for pin in initial_pin_states:
+            self.set_pin_frequency(pin, initial_pin_states[pin].frequency)
+            self.set_pin_duty_cycle(pin, initial_pin_states[pin].duty_cycle)
         
         self.duty_cycle = 0
         self.frequency = 0
@@ -355,6 +360,7 @@ class SerialPWMManager(PWMManager):
             raise ValueError("Frequency must be non-negative.")
         
         command = f"{frequency},{duty_cycle}"
+        self.pin_storage.save_pin(PinState('serial1', frequency, duty_cycle))
         self._send(command)
 
     def disable_pin(self, pin_info):
