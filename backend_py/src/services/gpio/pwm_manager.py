@@ -317,14 +317,15 @@ class SerialPWMManager(PWMManager):
         self.baud_rate = 9600
         self.serial_conn = serial.Serial(self.interface, self.baud_rate, timeout=1)
         self.pin_storage = pin_storage
-
-        initial_pin_states = self.pin_storage.get_pin_states()
-        for pin in initial_pin_states:
-            self.set_pin_frequency(pin, initial_pin_states[pin].frequency)
-            self.set_pin_duty_cycle(pin, initial_pin_states[pin].duty_cycle)
         
         self.duty_cycle = 0
         self.frequency = 0
+        
+        initial_pin_states = self.pin_storage.get_pin_states()
+        for pin in list(initial_pin_states):
+            self.set(initial_pin_states[pin].frequency, initial_pin_states[pin].duty_cycle)
+            self.frequency = initial_pin_states[pin].frequency
+            self.duty_cycle = initial_pin_states[pin].duty_cycle
 
     def get_pins(self):
         out_dict = {}
@@ -345,7 +346,6 @@ class SerialPWMManager(PWMManager):
         self.set(self.frequency, self.duty_cycle)
 
     def _send(self, command: str):
-        logging.info(command)
         if self.serial_conn.is_open:
             command_to_send = command + "\n"  # Append newline for command termination
             self.serial_conn.write(command_to_send.encode('utf-8'))
