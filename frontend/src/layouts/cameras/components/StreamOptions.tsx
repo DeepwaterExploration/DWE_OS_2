@@ -28,6 +28,15 @@ import { DeviceLeader } from "./DeviceLeader";
 import { subscribe } from "valtio";
 import DeviceContext from "../../../contexts/DeviceContext";
 import { IP_REGEX } from "../../../utils/utils";
+import { setPin } from "../../gpio/api";
+
+const FREQUENCY_LOOKUP = {
+    60: 60.3,
+    50: 50,
+    40: 40,
+    30: 30,
+    15: 15,
+};
 
 /*
  * Get the list of resolutions available from the device
@@ -277,6 +286,22 @@ export const StreamOptions: React.FC = () => {
                                 onChange={(selected) => {
                                     device.stream.interval.denominator =
                                         parseInt(selected.target.value);
+
+                                    console.log(
+                                        "Setting pwm value due to fps change " +
+                                            FREQUENCY_LOOKUP[
+                                                device.stream.interval
+                                                    .denominator
+                                            ]
+                                    );
+
+                                    setPin(
+                                        "serial1",
+                                        FREQUENCY_LOOKUP[
+                                            device.stream.interval.denominator
+                                        ],
+                                        50
+                                    );
                                 }}
                                 size='small'
                             >
