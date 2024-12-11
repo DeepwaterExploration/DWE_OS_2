@@ -78,6 +78,7 @@ class StreamRunner(events.EventEmitter):
         self.pipeline = None
         self.loop = None
         self.started = False
+        self.composited = False
         self.error_thread = None
 
     def start(self):
@@ -105,12 +106,66 @@ class StreamRunner(events.EventEmitter):
         self.error_thread.start()
 
     def _construct_pipeline(self):
-        pipeline_strs = []
-        for stream in self.streams:
-            if stream.configured:
-                pipeline_strs.append(stream._construct_pipeline())
-        return ' '.join(pipeline_strs)
-    
+        # If not compositing, use the original behavior
+        if not self.composited:
+            pipeline_strs = []
+            for stream in self.streams:
+                if stream.configured:
+                    pipeline_strs.append(stream._construct_pipeline())
+            return ' '.join(pipeline_strs)
+        
+        # Compositing logic
+        configured_streams = [stream for stream in self.streams if stream.configured]
+        
+        # If no streams or only one stream, fall back to original behavior
+        if len(configured_streams) <= 1:
+            return ' '.join(stream._construct_pipeline() for stream in configured_streams)
+        
+        # Use the first stream's endpoints for the final output
+        final_endpoints = configured_streams[0].endpoints
+        
+        # Manually construct pipeline components
+        stream_sources = []
+        for i, stream in enumerate(configured_streams):
+            # Manually construct source pipeline without using stream's method
+            source_pipeline = (
+                f'v4l2src device={stream.device_path} ! '
+                f'{stream._get_format()},'
+                f'width={stream.width},'
+                f'height={stream.height},'
+                f'framerate={stream.interval.denominator}/{stream.interval.numerator} ! '
+                f'videoconvert ! videoscale'
+            )
+            stream_sources.append(source_pipeline)
+        
+        # Construct videomixer pipeline
+        mixer_inputs = ' '.join([
+            f'input-{i}::{f"xpos={i * configured_streams[0].width}"} ' 
+            for i in range(len(configured_streams))
+        ])
+        
+        # Construct sink based on endpoints
+        if len(final_endpoints) == 0:
+            sink = 'fakesink'
+        else:
+            # Construct multiudpsink
+            sink = 'multiudpsink sync=true clients='
+            for endpoint, i in zip(final_endpoints, range(len(final_endpoints))):
+                sink += f'{endpoint.host}:{endpoint.port}'
+                if i < len(final_endpoints)-1:
+                    sink += ','
+        
+        # Final composited pipeline
+        composited_pipeline = f'''
+        {' ! '.join(stream_sources)} ! 
+        videomixer name=mix {mixer_inputs} ! 
+        videoconvert ! 
+        {configured_streams[0]._build_payload()} ! 
+        {sink}
+        '''
+        
+        return composited_pipeline.replace('\n', ' ').strip()
+
     def _log_errors(self):
         error_block = []
         try:

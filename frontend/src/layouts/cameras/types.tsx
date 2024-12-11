@@ -17,6 +17,9 @@ export interface Device {
     is_leader: boolean | undefined;
     leader: string | undefined;
     follower: string | undefined;
+
+    // COMPOSITED
+    composited: string | undefined; // bus info of device compsited with
 }
 
 export interface Camera {

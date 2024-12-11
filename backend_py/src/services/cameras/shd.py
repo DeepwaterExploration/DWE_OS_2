@@ -16,14 +16,32 @@ class SHDDevice(Device):
         self.leader: str = None
         self.leader_device: 'SHDDevice' = None
 
+        self.composited: str = None
+        self.composited_device: 'SHDDevice' = None
+
         # For backend internal use only
         self.follower: str = None
+    
+    def set_composited(self, other: 'SHDDevice'):
+        logging.info(f'Adding composited device: {other.bus_info} to {self.bus_info}')
+        self.composited_device = other
+        # We cannot be composited while also having a leader
+        self.remove_leader()
+        # We now manage the other stream
+        other.stream_runner.stop()
+        if len(self.stream_runner.streams) < 2:
+            self.stream_runner.streams.append(other.stream)
+        else:
+            self.stream_runner.streams[1] = other.stream
+
+        # Start as a composited stream
+        self.stream_runner.start()
 
     def set_leader(self, leader: 'SHDDevice'):
         # We love forward references
-        if not leader.is_leader:
-            logging.warn('Attempting to add follower SHD as a leader. This is undefined behavior and will not be permitted.')
-            return
+        # if not leader.is_leader:
+            # logging.warn('Attempting to add follower SHD as a leader. This is undefined behavior and will not be permitted.')
+            # return
         if leader.follower:
             logging.warn('Attempted to add follower to SHD with follower. This is undefined behavior and will not be permitted.')
             return
@@ -42,7 +60,7 @@ class SHDDevice(Device):
         # restart leader's stream to now include this device
         leader.stream.configured = True
         leader.follower = self.bus_info
-        leader.start_stream()
+        leader.stream_runner.start()
 
     def load_settings(self, saved_device: SavedDevice):
         return super().load_settings(saved_device)

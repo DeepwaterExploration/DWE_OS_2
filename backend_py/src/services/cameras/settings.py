@@ -75,7 +75,7 @@ class SettingsManager:
             # cast the type
             follower = cast(SHDDevice, follower)
 
-            if leader.device_type != DeviceType.STELLARHD_LEADER:
+            if leader.device_type != DeviceType.STELLARHD_LEADER and leader.device_type != DeviceType.STELLARHD_FOLLOWER:
                 logging.info('Non leader device plugged into leader port. This is ok and will be managed by the software!')
                 self.leader_follower_pairs.remove(leader_follower_pair)
                 continue

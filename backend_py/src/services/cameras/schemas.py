@@ -94,6 +94,7 @@ class DeviceSchema(Schema):
     is_leader = fields.Bool(required=False, allow_none=True)
     leader = fields.Str(required=False, allow_none=True)
     follower = fields.Str(required=False, allow_none=True)
+    composited = fields.Str(required=False, allow_none=True)
 
 
 class SavedDeviceSchema(DeviceSchema):

@@ -96,7 +96,10 @@ export const StreamOptions: React.FC = () => {
 
     useEffect(() => {
         console.log("Devices updated");
-        setLeaders(devices.filter((dev) => dev.is_leader));
+        // include all stellars instead of just leaders
+        setLeaders(
+            devices.filter((dev) => dev.device_type.includes("STELLARHD"))
+        );
     }, [devices]);
 
     useEffect(() => {

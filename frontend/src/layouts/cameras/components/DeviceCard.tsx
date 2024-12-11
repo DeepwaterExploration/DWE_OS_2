@@ -18,6 +18,8 @@ const DeviceCard: React.FC = () => {
         device: Device;
     };
 
+    console.log(device);
+
     return (
         <Card sx={styles.card} key={device.bus_info}>
             <CardHeader
