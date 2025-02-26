@@ -9,13 +9,21 @@ import Typography from "@mui/material/Typography";
 import React, { useContext, useEffect, useState } from "react";
 import { styles } from "../../style";
 import { Connection } from "./types";
-import { forgetNetwork, getConnections } from "./api";
+import { connectToNetwork, forgetNetwork, getConnections } from "./api";
 import WifiListItem, { WifiListItemType } from "./WifiListItem";
 import { useSnackbar } from "notistack";
 import WebsocketContext from "../../contexts/WebsocketContext";
 
-const KnownNetworksCard = ({}) => {
-    const { connected } = useContext(WebsocketContext);
+export interface KnownNetworksCardProps {
+    currentNetwork: Connection;
+    setCurrentNetwork: React.Dispatch<React.SetStateAction<Connection>>;
+}
+
+const KnownNetworksCard: React.FC<KnownNetworksCardProps> = ({
+    currentNetwork,
+    setCurrentNetwork,
+}) => {
+    const { connected, socket } = useContext(WebsocketContext);
 
     const [knownNetworks, setKnownNetworks] = useState([] as Connection[]);
     const { enqueueSnackbar } = useSnackbar();
@@ -27,26 +35,51 @@ const KnownNetworksCard = ({}) => {
     useEffect(() => {
         if (connected) {
             refreshNetworks();
-            const interval = setInterval(() => refreshNetworks(), 500);
+            socket.on("connections_changed", refreshNetworks);
             return () => {
-                clearInterval(interval);
+                socket.off("connections_changed");
             };
         }
     }, [connected]);
 
     const onForgetNetwork = async (ssid: string) => {
-        await forgetNetwork(ssid);
-        setTimeout(async () => {
-            let newNetworks = await getConnections();
-            if (newNetworks.find((connection) => connection.id === ssid))
-                enqueueSnackbar("Failed to forget network", {
-                    variant: "error",
+        let result = await forgetNetwork(ssid);
+        if (result) {
+            enqueueSnackbar("Successfully forgot network!", {
+                variant: "success",
+            });
+            setKnownNetworks((prevKnownNetworks) =>
+                prevKnownNetworks.filter((connection) => connection.id !== ssid)
+            );
+
+            if (currentNetwork.id === ssid) {
+                setCurrentNetwork({
+                    id: "",
+                    type: "",
                 });
-            else
-                enqueueSnackbar("Successfully forgot network!", {
-                    variant: "success",
-                });
-        }, 250);
+            }
+        } else {
+            enqueueSnackbar("Failed to forget network", {
+                variant: "error",
+            });
+        }
+    };
+
+    const onConnectToNetwork = async (ssid: string) => {
+        let result = await connectToNetwork(ssid);
+        if (result) {
+            enqueueSnackbar("Successfully connected to network!", {
+                variant: "success",
+            });
+            setCurrentNetwork({
+                id: ssid,
+                type: "802-11-wireless",
+            });
+        } else {
+            enqueueSnackbar("Failed to connected to network", {
+                variant: "error",
+            });
+        }
     };
 
     return (
@@ -71,6 +104,9 @@ const KnownNetworksCard = ({}) => {
                                     type={WifiListItemType.KNOWN}
                                     on_forget={() =>
                                         onForgetNetwork(connection.id)
+                                    }
+                                    on_connect={() =>
+                                        onConnectToNetwork(connection.id)
                                     }
                                 />
                             ))
