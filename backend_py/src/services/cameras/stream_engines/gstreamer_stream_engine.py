@@ -253,7 +253,7 @@ class GStreamerProcessEngine(BaseStreamEngine):
 
     def stop(self) -> None:
         with self._lock:
-            if not self.started or not self._process:
+            if not self.started:
                 return
 
             self.logger.info("Stopping stream")

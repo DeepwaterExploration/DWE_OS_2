@@ -120,8 +120,9 @@ class RecordingsService:
             self.logger.error(f"exiftool was not found: {e}")
         except json.JSONDecodeError as e:
             self.logger.error(f"Error decoding output from exiftool: {e}")
-        except subprocess.CalledProcessError as e:
-            self.logger.warning(f"exiftool had an unknown system error: {e}")
+        except subprocess.CalledProcessError:
+            # self.logger.warning(f"exiftool had an unknown system error: {e}")
+            pass
         return "Unknown"
 
     def get_recording(self, filename: str) -> RecordingInfo | None:

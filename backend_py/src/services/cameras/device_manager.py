@@ -149,10 +149,12 @@ class DeviceManager(events.EventEmitter):
             lambda _: self._append_stream_error(DeviceModel.model_validate(device)),
         )
 
-        if not self.serial_mode_fps:
-            device.stream_runner.on("stream_active", lambda: self._set_light(True))
-
-            device.stream_runner.on("stream_inactive", lambda: self._set_light(False))
+        #         if not self.serial_mode_fps:
+        #             device.stream_runner.on("stream_active",
+        # lambda: self._set_light(True))
+        #
+        #             device.stream_runner.on("stream_inactive",
+        # lambda: self._set_light(False))
 
         # Hack to allow shd to save follower and leader settings on removal
         device.on("save", lambda: self.settings_manager.save_device(device))
