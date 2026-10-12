@@ -134,16 +134,22 @@ class GStreamerProcessEngine(BaseStreamEngine):
         self.recording_length = streams[0].recording_length
         self.recording_interval = streams[0].recording_interval
 
-        if self.recording_interval <= self.recording_length:
-            self.emit_error(
-                "Recording interval must be greater than the recording length"
-            )
-
         self._scheduler: threading.Thread | None = None
 
         self.has_recording_stream = any(
             stream.stream_type == StreamTypeEnum.RECORDING for stream in self.streams
         )
+
+        # 0 means interval recording is disabled
+        if (
+            self.has_recording_stream
+            and self.recording_interval != 0
+            and self.recording_length != 0
+            and self.recording_interval <= self.recording_length
+        ):
+            self.emit_error(
+                "Recording interval must be greater than the recording length"
+            )
 
         # Behavior:
         # - Thread waits until stop thread is set

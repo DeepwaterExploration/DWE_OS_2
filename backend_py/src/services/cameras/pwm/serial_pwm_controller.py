@@ -110,12 +110,12 @@ class SerialPWMController:
         # have the correct clock frequency
         self.frequency = frequency
         self.duty_cycle = duty_cycle
-        if not self.found_port:
-            return
         command = f"{frequency + self.frequency_offset},{duty_cycle}\n"
 
+        self.logger.info(f"Sending command {command.strip()}")
+        if not self.found_port:
+            return
         if self.serial:
-            self.logger.info(f"Sending command {command.strip()}")
             self.serial.write(command.encode("utf-8"))
 
     def apply_from_fps(self, fps: int) -> None:
