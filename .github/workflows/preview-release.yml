@@ -1,18 +1,12 @@
 name: Preview Release
 
-# Publish a labelled PR as a GitHub prerelease tagged preview-pr-<number>, so a
+# Publish every PR as a GitHub prerelease tagged preview-pr-<number>, so a
 # customer can install an unmerged feature with:
 #   curl -s .../install.sh | sudo bash -s preview-pr-<number>
-# Every push to the PR rebuilds the preview. Closing the PR or removing the
-# label deletes it.
+# Every push to the PR rebuilds the preview. Closing the PR deletes it.
 on:
   pull_request:
-    types: [opened, synchronize, reopened, labeled, unlabeled, closed]
-
-# The label is repeated in the job conditions, which cannot read env. Keep
-# them and the README in sync.
-env:
-  PREVIEW_LABEL: example-preview
+    types: [opened, synchronize, reopened, closed]
 
 permissions:
   contents: read
@@ -24,10 +18,7 @@ jobs:
     # this repository
     if: >-
       github.event.pull_request.head.repo.full_name == github.repository &&
-      contains(github.event.pull_request.labels.*.name, 'example-preview') &&
-      github.event.action != 'closed' &&
-      github.event.action != 'unlabeled' &&
-      (github.event.action != 'labeled' || github.event.label.name == 'example-preview')
+      github.event.action != 'closed'
     runs-on: ubuntu-22.04
     # A new push makes the running build stale
     concurrency:
@@ -100,15 +91,14 @@ jobs:
         with:
           name: release
 
-      # The PR may have closed or lost the label while it was building
+      # The PR may have closed while it was building
       - name: "Check the preview is still wanted"
         id: wanted
         run: |
-          WANTED="$(gh pr view "$PR_NUMBER" --json state,labels \
-            --jq "(.state == \"OPEN\") and ([.labels[].name] | index(\"${PREVIEW_LABEL}\") != null)")"
+          WANTED="$(gh pr view "$PR_NUMBER" --json state --jq '.state == "OPEN"')"
           echo "wanted=$WANTED" >> "$GITHUB_OUTPUT"
           if [ "$WANTED" != "true" ]; then
-            echo "Pull request is closed or no longer labelled \`${PREVIEW_LABEL}\`; not publishing" >> "$GITHUB_STEP_SUMMARY"
+            echo "Pull request is closed; not publishing" >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: "Publish prerelease"
@@ -171,7 +161,7 @@ jobs:
           curl -s ${install_url} | sudo bash -s ${tag}
           \`\`\`
 
-          Rebuilt on every push. Removing the \`${PREVIEW_LABEL}\` label or closing this pull request deletes the preview.
+          Rebuilt on every push. Closing this pull request deletes the preview.
           EOF
 
           COMMENT_ID="$(gh api "repos/${GH_REPO}/issues/${PR_NUMBER}/comments" --paginate \
@@ -187,10 +177,7 @@ jobs:
   cleanup:
     if: >-
       github.event.pull_request.head.repo.full_name == github.repository &&
-      (
-        (github.event.action == 'closed' && contains(github.event.pull_request.labels.*.name, 'example-preview')) ||
-        (github.event.action == 'unlabeled' && github.event.label.name == 'example-preview')
-      )
+      github.event.action == 'closed'
     runs-on: ubuntu-22.04
     concurrency:
       group: preview-publish-${{ github.event.pull_request.number }}
