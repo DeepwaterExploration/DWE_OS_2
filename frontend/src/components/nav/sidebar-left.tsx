@@ -25,7 +25,7 @@ import { version } from "../../../package.json";
 
 const data = {
   main: {
-    name: "DWE OS",
+    name: "dweOS",
     logoLight: DWELogo,
     logoDark: DWELogoDark,
   },

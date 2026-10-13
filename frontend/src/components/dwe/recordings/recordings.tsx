@@ -14,7 +14,7 @@ import { Progress } from "@/components/ui/progress";
 import { Spinner } from "@/components/ui/spinner";
 import { TOUR_STEP_IDS } from "@/lib/tour-constants";
 import { cn } from "@/lib/utils";
-import { components } from "@/schemas/dwe_os_2";
+import { components } from "@/schemas/dweos";
 import { ChevronDown, Circle, Download, Search, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSnapshot } from "valtio";

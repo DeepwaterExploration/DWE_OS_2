@@ -2,13 +2,13 @@ import { Markdown } from "./markdown";
 
 const markdown = `
 # Connection Lost
-## Please make sure DWE OS is accesible by this device.
+## Please make sure dweOS is accesible by this device.
 
 ### Potential Issues:
 - **Network Setup:** Your network setup may have lost connection.
-- **DWE OS Status:** Ensure that DWE OS is running and accessible.
+- **dweOS Status:** Ensure that dweOS is running and accessible.
 
-For more information, please refer to the [DWE OS documentation](https://docs.dwe.ai/software/dwe-os/dwe-os-2).
+For more information, please refer to the [dweOS documentation](https://docs.dwe.ai/software/dwe-os/dwe-os-2).
 `;
 
 const NotConnected = () => {

@@ -38,7 +38,7 @@ class SerialPWMController:
         self.has_printed_error = False
         self.frequency_offset = frequency_offset
 
-        self.logger = logging.getLogger("dwe_os_2.pwm.SerialPWMController")
+        self.logger = logging.getLogger("dweOS.pwm.SerialPWMController")
         self.baudrate = baudrate
         self.frequency = 0
         self.duty_cycle = 0

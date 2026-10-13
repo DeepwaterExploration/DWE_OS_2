@@ -26,7 +26,7 @@ class StreamRunner(events.EventEmitter):
         self.streams = list(streams)
         self.started = False
         self._lock = threading.RLock()
-        self.logger = logging.getLogger("dwe_os_2.cameras.StreamRunner")
+        self.logger = logging.getLogger("dweOS.cameras.StreamRunner")
 
     def _select_engine(self) -> BaseStreamEngine:
         """Factory method to choose the correct streaming backend."""

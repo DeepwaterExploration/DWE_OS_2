@@ -66,7 +66,7 @@ class V4L2Camera:
         self._buffers = []  # list[mmap.mmap]
         self._running = False
 
-        self.logger = logging.getLogger("dwe_os_2.cameras.V4L2Camera")
+        self.logger = logging.getLogger("dweOS.cameras.V4L2Camera")
 
         # This doesn't seem to work
         # self._reset_usb_device()
@@ -308,7 +308,7 @@ class SynchronizedCamera(EventEmitter):
         self.sync_threshold_us = sync_threshold_us
         self.queue_cap = queue_cap
         self.queues: list[deque[CopiedFrame]] = [deque() for _ in cameras]
-        self.logger = logging.getLogger("dwe_os_2.cameras.SynchronizedCamera")
+        self.logger = logging.getLogger("dweOS.cameras.SynchronizedCamera")
 
         # For those curious about the synchronization logic,
         # it can be summarized as follows:

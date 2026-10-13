@@ -48,7 +48,7 @@ class Device(events.EventEmitter):
             self.cameras.append(Camera(device_path))
 
         self.logger = logging.getLogger(
-            f"dwe_os_2.cameras.Device.{device_info.bus_info}"
+            f"dweOS.cameras.Device.{device_info.bus_info}"
         )
         self.logger.setLevel(logging.DEBUG)
 

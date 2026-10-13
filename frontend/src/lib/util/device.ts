@@ -1,4 +1,4 @@
-import { components } from "@/schemas/dwe_os_2";
+import { components } from "@/schemas/dweos";
 
 export function getStreamFromStreamInfo(
   stream: components["schemas"]["StreamModel"],

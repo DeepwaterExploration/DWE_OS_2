@@ -72,7 +72,7 @@ LABEL links='{\
   "support": "https://dwe.ai/pages/contact"\
   }'
 
-LABEL readme="https://raw.githubusercontent.com/DeepwaterExploration/DWE_OS_2/main/DESCRIPTION.md"
+LABEL readme="https://raw.githubusercontent.com/DeepWaterExploration/dweOS/main/DESCRIPTION.md"
 
 # Expose required ports
 EXPOSE 8000
@@ -80,12 +80,12 @@ EXPOSE 8000
 # Mount required host directories (for dbus, video4linux, and dev access)
 VOLUME ["/sys/class/video4linux", "/dev", "/run/dbus", "/var/run/dbus"]
 
-# Install DWE_OS_2
-COPY release /opt/DWE_OS_2
+# Install dweOS
+COPY release /opt/dweOS
 
-WORKDIR /opt/DWE_OS_2
+WORKDIR /opt/dweOS
 
 RUN mkdir /settings
 
-# Run DWE_OS_2
-CMD ["python3", "/opt/DWE_OS_2/run_release.py", "--no-ttyd", "--port", "8000", "--no-wifi", "--settings-path", "/settings"]
+# Run dweOS
+CMD ["python3", "/opt/dweOS/run_release.py", "--no-ttyd", "--port", "8000", "--no-wifi", "--settings-path", "/settings"]

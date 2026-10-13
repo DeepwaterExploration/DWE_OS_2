@@ -1,5 +1,5 @@
 import { API_CLIENT } from "@/api";
-import { components } from "@/schemas/dwe_os_2";
+import { components } from "@/schemas/dweos";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 

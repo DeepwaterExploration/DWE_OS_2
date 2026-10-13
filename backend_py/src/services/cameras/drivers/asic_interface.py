@@ -47,7 +47,7 @@ class ASICInterface:
         self._queue_cond = threading.Condition(self._queue_lock)
 
         self.logger = logging.getLogger(
-            f"dwe_os_2.cameras.shd.ASICInterface.{camera.path}"
+            f"dweOS.cameras.shd.ASICInterface.{camera.path}"
         )
 
         self._thread = threading.Thread(target=self._sync_sync_asic_writes, daemon=True)
