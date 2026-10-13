@@ -1,0 +1,211 @@
+name: Preview Release
+
+# Publish every PR as a GitHub prerelease tagged preview-pr-<number>, so a
+# customer can install an unmerged feature with:
+#   curl -s .../install.sh | sudo bash -s preview-pr-<number>
+# Every push to the PR rebuilds the preview. Closing the PR deletes it.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+permissions:
+  contents: read
+
+jobs:
+  # Runs the PR's code, so it gets a read-only token
+  build:
+    # Fork PRs get a read-only token and cannot publish, so only build PRs from
+    # this repository
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.action != 'closed'
+    runs-on: ubuntu-22.04
+    # A new push makes the running build stale
+    concurrency:
+      group: preview-build-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    outputs:
+      sha: ${{ steps.version.outputs.sha }}
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      # The default pull_request ref is the PR merged into its base branch, so
+      # the preview also carries every fix already on main
+      - name: "Checkout code"
+        uses: actions/checkout@v6
+
+      - name: "Set up Node.js"
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      # Mark the build as a preview, so the version badge in the UI shows it
+      - name: "Set preview version"
+        id: version
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          BASE_VERSION="$(node -p "require('./frontend/package.json').version")"
+          VERSION="${BASE_VERSION}-pr${PR_NUMBER}.${HEAD_SHA::7}"
+          (cd frontend && npm pkg set version="$VERSION")
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: "Build Project"
+        run: |
+          ./create_release.sh
+
+      - name: "Upload release archive"
+        uses: actions/upload-artifact@v4
+        with:
+          name: release
+          path: release.tar.gz
+          retention-days: 1
+
+  # Never runs the PR's code, so it can hold a write token
+  publish:
+    needs: build
+    runs-on: ubuntu-22.04
+    # Shared with cleanup and never cancelled, so a release is not left half
+    # published
+    concurrency:
+      group: preview-publish-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
+    permissions:
+      contents: write # Create the tag and the prerelease
+      pull-requests: write # Comment the install command on the PR
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_TITLE: ${{ github.event.pull_request.title }}
+      PR_URL: ${{ github.event.pull_request.html_url }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      BUILD_SHA: ${{ needs.build.outputs.sha }}
+      VERSION: ${{ needs.build.outputs.version }}
+
+    steps:
+      - name: "Download release archive"
+        uses: actions/download-artifact@v4
+        with:
+          name: release
+
+      # The PR may have closed while it was building
+      - name: "Check the preview is still wanted"
+        id: wanted
+        run: |
+          WANTED="$(gh pr view "$PR_NUMBER" --json state --jq '.state == "OPEN"')"
+          echo "wanted=$WANTED" >> "$GITHUB_OUTPUT"
+          if [ "$WANTED" != "true" ]; then
+            echo "Pull request is closed; not publishing" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: "Publish prerelease"
+        if: steps.wanted.outputs.wanted == 'true'
+        run: |
+          TAG="preview-pr-${PR_NUMBER}"
+          INSTALL_URL="https://raw.githubusercontent.com/${GH_REPO}/main/install.sh"
+
+          # Point the tag at the commit that was built. The tag protects the
+          # merge commit from garbage collection after the PR moves on.
+          gh api "repos/${GH_REPO}/git/refs/tags/${TAG}" >/dev/null 2>&1 \
+            && gh api -X PATCH "repos/${GH_REPO}/git/refs/tags/${TAG}" -f sha="$BUILD_SHA" -F force=true >/dev/null \
+            || gh api "repos/${GH_REPO}/git/refs" -f ref="refs/tags/${TAG}" -f sha="$BUILD_SHA" >/dev/null
+
+          cat > notes.md <<EOF
+          > [!WARNING]
+          > This is a preview of an unmerged pull request, not a supported release. It is replaced on every push to the pull request and deleted when the pull request closes.
+
+          Preview of ${PR_URL}: **${PR_TITLE}**
+
+          - Version: \`${VERSION}\`
+          - Pull request commit: \`${HEAD_SHA}\`
+          - Built from: \`${BUILD_SHA}\` (the pull request merged into its base branch)
+
+          ## Install
+
+          \`\`\`sh
+          curl -s ${INSTALL_URL} | sudo bash -s ${TAG}
+          \`\`\`
+
+          ## Return to the latest stable release
+
+          \`\`\`sh
+          curl -s ${INSTALL_URL} | sudo bash -s
+          \`\`\`
+          EOF
+
+          # Update the release in place rather than recreating it, so the
+          # download URL never disappears mid-install
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" release.tar.gz --clobber
+            gh release edit "$TAG" --title "Preview: PR #${PR_NUMBER}" --notes-file notes.md --prerelease --latest=false
+          else
+            gh release create "$TAG" release.tar.gz --verify-tag --title "Preview: PR #${PR_NUMBER}" --notes-file notes.md --prerelease --latest=false
+          fi
+
+          echo "tag=$TAG" >> "$GITHUB_ENV"
+          echo "install_url=$INSTALL_URL" >> "$GITHUB_ENV"
+
+      # Keep one comment per PR and edit it on every push
+      - name: "Comment install command"
+        if: steps.wanted.outputs.wanted == 'true'
+        run: |
+          MARKER="<!-- preview-release -->"
+          cat > comment.md <<EOF
+          ${MARKER}
+          **Preview build:** [\`${tag}\`](https://github.com/${GH_REPO}/releases/tag/${tag}) (\`${VERSION}\`)
+
+          \`\`\`sh
+          curl -s ${install_url} | sudo bash -s ${tag}
+          \`\`\`
+
+          Rebuilt on every push. Closing this pull request deletes the preview.
+          EOF
+
+          COMMENT_ID="$(gh api "repos/${GH_REPO}/issues/${PR_NUMBER}/comments" --paginate \
+            --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"${MARKER}\"))) | .id" | head -n 1)"
+          if [ -n "$COMMENT_ID" ]; then
+            gh api -X PATCH "repos/${GH_REPO}/issues/comments/${COMMENT_ID}" -F body=@comment.md >/dev/null
+          else
+            gh api "repos/${GH_REPO}/issues/${PR_NUMBER}/comments" -F body=@comment.md >/dev/null
+          fi
+
+          echo "Published \`${tag}\` (\`${VERSION}\`)" >> "$GITHUB_STEP_SUMMARY"
+
+  cleanup:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.action == 'closed'
+    runs-on: ubuntu-22.04
+    concurrency:
+      group: preview-publish-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
+    permissions:
+      contents: write # Delete the tag and the prerelease
+      pull-requests: write # Update the PR comment
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+
+    steps:
+      - name: "Delete prerelease"
+        run: |
+          TAG="preview-pr-${PR_NUMBER}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release delete "$TAG" --cleanup-tag --yes
+          fi
+          # The tag can outlive the release if a publish failed halfway
+          gh api -X DELETE "repos/${GH_REPO}/git/refs/tags/${TAG}" >/dev/null 2>&1 || true
+
+          MARKER="<!-- preview-release -->"
+          COMMENT_ID="$(gh api "repos/${GH_REPO}/issues/${PR_NUMBER}/comments" --paginate \
+            --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"${MARKER}\"))) | .id" | head -n 1)"
+          if [ -n "$COMMENT_ID" ]; then
+            printf '%s\n~~Preview build `%s`~~ deleted.\n' "$MARKER" "$TAG" > comment.md
+            gh api -X PATCH "repos/${GH_REPO}/issues/comments/${COMMENT_ID}" -F body=@comment.md >/dev/null
+          fi
+
+          echo "Deleted \`${TAG}\`" >> "$GITHUB_STEP_SUMMARY"
