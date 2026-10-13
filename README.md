@@ -50,6 +50,21 @@ sudo ./build.sh -c config
 
 The image will be found in the deploy folder. The latest release from github will be used for building the image.
 
+## Preview Builds
+
+To let a customer try a pull request before it is merged, add the `example-preview` label to it. The [Preview Release](.github/workflows/preview-release.yml) workflow builds the pull request merged into its base branch and publishes it as the GitHub prerelease `preview-pr-<number>`. It also comments the install command on the pull request:
+
+```sh
+curl -s https://raw.githubusercontent.com/DeepwaterExploration/dweOS/main/install.sh | sudo bash -s preview-pr-<number>
+```
+
+- The version badge shows the build as a preview, for example `v0.7.7-pr556.a1b2c3d`.
+- Every push to the pull request rebuilds the preview in place.
+- Closing the pull request or removing the label deletes the prerelease and its tag.
+- Previews are only built for branches in this repository, not forks, and are not published for BlueOS.
+
+To return to the latest stable release, run the install command without a tag.
+
 ## Creating a Release
 
 Releases are versioned from `frontend/package.json` and use [conventional commits](https://www.conventionalcommits.org) to generate `CHANGELOG.md`. You need [git-cliff](https://git-cliff.org), `npm`, and the [GitHub CLI](https://cli.github.com) (`gh`).
