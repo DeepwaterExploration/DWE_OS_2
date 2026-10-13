@@ -79,6 +79,14 @@ export const useDeviceStore = create<DeviceState>()(
             interval: stream.interval,
           },
           stream_type: streamType,
+          // Devices saved before interval recording existed may not have these,
+          // so fall back to 0 (record normally) instead of omitting them
+          recording_interval:
+            partialStreamInfo.recording_interval ??
+            stream.recording_interval ??
+            0,
+          recording_length:
+            partialStreamInfo.recording_length ?? stream.recording_length ?? 0,
         };
 
         set((state) => {

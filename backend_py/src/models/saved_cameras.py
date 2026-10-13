@@ -35,6 +35,9 @@ class SavedStreamModel(BaseModel):
     height: int
     interval: IntervalModel
     enabled: bool
+    # Defaults keep settings saved before interval recording loadable
+    recording_interval: int = 0
+    recording_length: int = 0
 
     class Config:
         # use_enum_values = True
