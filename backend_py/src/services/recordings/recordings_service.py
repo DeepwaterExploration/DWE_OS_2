@@ -59,8 +59,15 @@ class RecordingsService:
                     if new_size != recording.size and not recording.path.endswith(
                         ".dwvo"
                     ):
-                        recording.duration = self._get_duration(recording.path)
-                    recording.size = self._format_size(os.stat(recording.path).st_size)
+                        duration = self._get_duration(recording.path)
+
+                        if duration == "Unknown":
+                            # Make the assumption this means that it's active
+                            duration = self._elapsed_since(recording.created)
+
+                        recording.duration = duration
+
+                    recording.size = new_size
 
                 return self.recordings
 
@@ -87,6 +94,13 @@ class RecordingsService:
             self.recordings = recordings
             self._last_dir_mtime = current_mtime
             return recordings
+
+    def _elapsed_since(self, created: str) -> str:
+        from datetime import datetime
+
+        start = datetime.strptime(created, "%Y-%m-%d %H:%M:%S")
+        secs = max(int((datetime.now() - start).total_seconds()), 0)
+        return f"{secs // 3600:02}:{secs % 3600 // 60:02}:{secs % 60:02}"
 
     def _format_size(self, size_bytes: int) -> str:
         return f"{size_bytes / (1024 * 1024):.2f} MB"
@@ -118,7 +132,9 @@ class RecordingsService:
                 size = os.path.getsize(file_path)
 
                 if file_path.endswith(".mp4"):
-                    duration = data[0].get("Duration", "00:00:00")
+                    duration = data[0].get("Duration", None)
+                    if not duration:
+                        return "Unknown"
                     if "s" in duration:
                         duration = (
                             f"00:00:{round(float(duration.replace(' s', ''))):02}"
@@ -141,7 +157,7 @@ class RecordingsService:
                     )
                     return duration
 
-            return "00:00:00"
+            return "Unknown"
         except FileNotFoundError as e:
             self.logger.error(f"exiftool was not found: {e}")
         except json.JSONDecodeError as e:
