@@ -12,8 +12,15 @@ import subprocess
 import threading
 import uuid
 import zipfile
+from dataclasses import dataclass
 
 from backend_py.src.models import RecordingInfo
+
+
+@dataclass
+class Duration:
+    duration_value: str
+    size: int  # determine uniqeuness
 
 
 class RecordingsService:
@@ -26,7 +33,7 @@ class RecordingsService:
         self.logger = logging.getLogger("dwe_os_2.RecordingsService")
         self.recordings_lock = threading.Lock()
 
-        self.durations = {}
+        self.durations: dict[str, Duration] = {}
 
         self._last_dir_mtime = 0.0
 
@@ -43,7 +50,18 @@ class RecordingsService:
                 # A file being written to does not modify the directory, so the
                 # size of an active recording has to be refreshed separately
                 for recording in self.recordings:
+                    try:
+                        size_bytes = os.stat(recording.path).st_size
+                    except FileNotFoundError:
+                        continue
+
+                    new_size = self._format_size(size_bytes)
+                    if new_size != recording.size and not recording.path.endswith(
+                        ".dwvo"
+                    ):
+                        recording.duration = self._get_duration(recording.path)
                     recording.size = self._format_size(os.stat(recording.path).st_size)
+
                 return self.recordings
 
             # otherwise run scan
@@ -80,8 +98,10 @@ class RecordingsService:
 
     def _get_duration(self, file_path: str) -> str:
         if file_path in self.durations:
-            self.logger.info(f"Found cached duration: {file_path}")
-            return self.durations[file_path]
+            # Only cache if the size is the same, otherwise it was modified
+            size = os.path.getsize(file_path)
+            if size == self.durations[file_path].size:
+                return self.durations[file_path].duration_value
 
         # FIXME: We need to change this function to use a better metadata library
         try:
@@ -95,13 +115,17 @@ class RecordingsService:
             if output:
                 data = json.loads(output)
 
+                size = os.path.getsize(file_path)
+
                 if file_path.endswith(".mp4"):
                     duration = data[0].get("Duration", "00:00:00")
                     if "s" in duration:
                         duration = (
                             f"00:00:{round(float(duration.replace(' s', ''))):02}"
                         )
-                    self.durations[file_path] = duration
+                    self.durations[file_path] = Duration(
+                        duration_value=duration, size=size
+                    )
                     return duration
 
                 totalFrameCount = data[0].get("TotalFrameCount", 0)
@@ -112,7 +136,9 @@ class RecordingsService:
                     minutes = int((duration % 3600) // 60)
                     seconds = int(duration % 60)
                     duration = f"{hours:02}:{minutes:02}:{seconds:02d}"
-                    self.durations[file_path] = duration
+                    self.durations[file_path] = Duration(
+                        duration_value=duration, size=size
+                    )
                     return duration
 
             return "00:00:00"
