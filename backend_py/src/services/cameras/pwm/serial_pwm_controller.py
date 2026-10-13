@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import time
 
 import serial
 from serial.tools import list_ports
@@ -87,6 +88,10 @@ class SerialPWMController:
                             self.found_port = True
                             self.has_printed_error = False
                             self.logger.info("PWM USB serial connected at %s", path)
+
+                            # Wait until serial connects
+                            time.sleep(4)
+
                             # Perform initial apply
                             self.apply(self.frequency, self.duty_cycle)
                         except serial.SerialException as e:
