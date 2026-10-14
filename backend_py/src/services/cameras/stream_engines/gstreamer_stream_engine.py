@@ -111,8 +111,16 @@ class GStreamerPipelineBuilder:
                 stream.file_path = unique_path
                 muxer = "avimux" if extension == "avi" else "mp4mux"
                 # Split recordings into 5 minute segments
+                if extension == "avi":
+                    return (
+                        f'splitmuxsink location="{unique_path}" muxer={muxer} '
+                        "max-size-time=300000000000"
+                    )
                 return (
-                    f'splitmuxsink location="{unique_path}" muxer={muxer} '
+                    f'splitmuxsink location="{unique_path}" async-finalize=true '
+                    f"muxer-factory={muxer} "
+                    'muxer-properties="properties,fragment-duration=1000" '
+                    "send-keyframe-requests=true "
                     "max-size-time=300000000000"
                     # "max-size-time=3000000000"
                 )
