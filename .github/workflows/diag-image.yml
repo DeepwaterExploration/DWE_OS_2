@@ -1,0 +1,70 @@
+name: Diagnose Pi Image (temporary)
+on:
+  push:
+    branches: ["ci/pimod-static-image"]
+    paths: [".github/workflows/diag-image.yml"]
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  compare:
+    runs-on: ubuntu-24.04-arm
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Download images
+        run: |
+          mkdir -p imgs && cd imgs
+          gh release download v0.7.7 --repo "$GITHUB_REPOSITORY" -p dweOS-RPi-image-v0.7.7.img.xz
+          gh run download 38636448072 --repo "$GITHUB_REPOSITORY" -n dweOS-staticIP-RPi-image-v0.7.7.img.xz
+          ls -l
+          xz -T0 -d dweOS-RPi-image-v0.7.7.img.xz && mv dweOS-RPi-image-v0.7.7.img good.img
+          xz -T0 -d dweOS-staticIP-RPi-image-v0.7.7.img.xz && mv dweOS-staticIP-RPi-image-v0.7.7.img ci.img
+          ls -l
+
+      - name: Inspect images
+        run: |
+          inspect() {
+            name=$1; img=imgs/$1.img; out=$1.txt
+            loop=$(sudo losetup -P --show -f -r "$img")
+            sudo mkdir -p /mnt/$name/boot /mnt/$name/root
+            sudo mount -o ro ${loop}p1 /mnt/$name/boot
+            sudo mount -o ro,noload ${loop}p2 /mnt/$name/root
+            r=/mnt/$name/root; b=/mnt/$name/boot
+            {
+              echo "## image size"; stat -c %s "$img"
+              echo "## partitions"; sudo sfdisk -d "$img" | sed 's/^label-id.*//'
+              echo "## blkid"; sudo blkid ${loop}p1 ${loop}p2 | sed "s|$loop||"
+              echo "## label-id"; sudo sfdisk -d "$img" | grep label-id
+              echo "## cmdline.txt"; cat $b/cmdline.txt
+              echo "## config.txt (non-comment)"; grep -v '^#' $b/config.txt | grep -v '^$'
+              echo "## boot files"; ls $b | sort
+              echo "## fstab"; cat $r/etc/fstab
+              echo "## hostname"; cat $r/etc/hostname
+              echo "## nm connections"; sudo ls -la $r/etc/NetworkManager/system-connections/
+              for f in $r/etc/NetworkManager/system-connections/*; do echo "# $f"; sudo cat "$f"; done
+              echo "## resolv.conf"; ls -la $r/etc/resolv.conf
+              echo "## enabled units"; ls $r/etc/systemd/system/*.wants/ 2>/dev/null
+              echo "## kernel modules"; ls $r/lib/modules/ $r/usr/lib/modules/ 2>/dev/null
+              echo "## du"; sudo du -sh $r/usr $r/opt $r/var $r/etc $r/home $r/root $b 2>/dev/null | sed "s|/mnt/$name/||"
+              echo "## du usr/lib top"; sudo du -s $r/usr/lib/* 2>/dev/null | sort -rn | head -25 | sed "s|/mnt/$name/root||"
+              echo "## dpkg count"; grep -c '^Package:' $r/var/lib/dpkg/status
+              echo "## dpkg list"; awk '/^Package:/{p=$2} /^Version:/{print p, $2}' $r/var/lib/dpkg/status | sort
+              echo "## dwe_os"; ls -la $r/opt/DWE_OS_2 | awk '{print $1,$3,$4,$NF}'
+              echo "## users"; grep -E '^(dwe|pi):' $r/etc/passwd
+            } > $out 2>&1
+            sudo umount /mnt/$name/boot /mnt/$name/root
+            sudo losetup -d $loop
+          }
+          inspect good
+          inspect ci
+          diff good.txt ci.txt > diff.txt || true
+          echo "===== DIFF (good vs ci) ====="; cat diff.txt
+          echo "===== GOOD ====="; sed -n '1,/## dpkg list/p' good.txt
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: diag
+          path: "*.txt"
