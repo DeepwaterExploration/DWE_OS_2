@@ -33,11 +33,16 @@ import {
 import WebsocketContext from "@/contexts/WebsocketContext";
 import { API_CLIENT } from "@/api";
 import { components } from "@/schemas/dwe_os_2";
-import { LogDetailView } from "./log-detail-view";
 import { getLevelColor } from "@/lib/utils";
 import { TOUR_STEP_IDS } from "@/lib/tour-constants";
 import { useTour } from "@/components/tour/tour";
-import { downloadFile, getLogExportFileName, logsToCsv } from "@/lib/util/logs";
+import {
+  copyText,
+  downloadFile,
+  formatLogForCopy,
+  getLogExportFileName,
+  logsToCsv,
+} from "@/lib/util/logs";
 
 const DEMO_LOG: components["schemas"]["LogSchema"][] = [
   {
@@ -64,10 +69,8 @@ export function LogViewer() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [itemsPerPage, setItemsPerPage] = useState<number>(10);
-  const [selectedLog, setSelectedLog] = useState<
-    components["schemas"]["LogSchema"] | undefined
-  >(undefined);
-  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  // Row that was just copied, briefly highlighted as click feedback
+  const [copiedRow, setCopiedRow] = useState<number | null>(null);
 
   // Available log levels
   const logLevels = ["ALL", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"];
@@ -191,6 +194,19 @@ export function LogViewer() {
     downloadFile(getLogExportFileName(), logsToCsv(logs), "text/csv");
   };
 
+  const copyLog = async (
+    log: components["schemas"]["LogSchema"],
+    row: number,
+  ) => {
+    setCopiedRow(row);
+    setTimeout(
+      () => setCopiedRow((current) => (current === row ? null : current)),
+      600,
+    );
+    if (await copyText(formatLogForCopy(log))) toast.success("Log copied");
+    else toast.error("Couldn't copy the log");
+  };
+
   return (
     <div
       className="flex flex-col h-[calc(100vh-5.5rem)] gap-4"
@@ -257,11 +273,11 @@ export function LogViewer() {
                   <TableRow
                     key={index}
                     id={TOUR_STEP_IDS.DEMO_LOGS}
-                    className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => {
-                      setSelectedLog(log);
-                      setIsDetailOpen(true);
-                    }}
+                    title="Click to copy"
+                    className={`cursor-pointer select-none transition-colors duration-300 hover:bg-muted/50 active:bg-muted ${
+                      copiedRow === index ? "bg-primary/15" : ""
+                    }`}
+                    onClick={() => copyLog(log, index)}
                   >
                     <TableCell className="font-mono text-xs">
                       {formatTimestamp(log.timestamp)}
@@ -271,29 +287,20 @@ export function LogViewer() {
                         {log.level}
                       </Badge>
                     </TableCell>
-                    <TableCell
-                      className="whitespace-normal break-words max-w-[150px]"
-                      title={log.name}
-                    >
+                    <TableCell className="whitespace-normal break-words max-w-[150px]">
                       {log.name}
                     </TableCell>
                     <TableCell>
                       <div className="text-xs">
-                        <div
-                          className="break-words max-w-[150px]"
-                          title={log.filename}
-                        >
+                        <div className="break-words max-w-[150px]">
                           {log.filename}:{log.lineno}
                         </div>
-                        <div
-                          className="text-gray-500 break-words max-w-[150px]"
-                          title={log.function}
-                        >
+                        <div className="text-gray-500 break-words max-w-[150px]">
                           {log.function}()
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell title={log.message}>
+                    <TableCell>
                       <div className="font-mono text-xs whitespace-normal break-words line-clamp-2 pr-2 max-w-[150px]">
                         {log.message}
                       </div>
@@ -396,13 +403,6 @@ export function LogViewer() {
           </Pagination>
         </div>
       )}
-
-      {/* Log Detail Dialog */}
-      <LogDetailView
-        log={selectedLog}
-        open={isDetailOpen}
-        onOpenChange={setIsDetailOpen}
-      />
     </div>
   );
 }
