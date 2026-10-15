@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Clock, File, User, Code } from "lucide-react";
-import { components } from "@/schemas/dwe_os_2";
+import { components } from "@/schemas/dweos";
 import { getLevelColor } from "@/lib/utils";
 
 export function LogDetailView({

@@ -44,7 +44,7 @@ class Server:
         feature_support: FeatureSupport,
         sio: socketio.AsyncServer,
         app: FastAPI,
-        data_dir: str = "/var/lib/dwe_os",
+        data_dir: str = "/var/lib/dweos",
         settings_path: str = ".",
         log_level=logging.INFO,
         is_dev_mode=False,
@@ -58,12 +58,12 @@ class Server:
         # Create the managers
         self.sio = sio
 
-        # /var/lib/dwe_os
+        # /var/lib/dweos
         self.data_dir = data_dir
         os.makedirs(self.data_dir, exist_ok=True, mode=0o755)
 
         # Create the logging handler
-        self.root_logger = logging.getLogger("dwe_os_2")
+        self.root_logger = logging.getLogger("dweOS")
         self.stream_handler = logging.StreamHandler()
         self.root_logger.addHandler(self.stream_handler)
         self.log_handler = LogHandler(self.sio)
@@ -90,7 +90,7 @@ class Server:
         self.log_formatter.default_msec_format = "%s.%03d"
         self.stream_handler.setFormatter(self.log_formatter)
         self.file_handler = logging.handlers.RotatingFileHandler(
-            "dwe_os_2.log",
+            "dweos.log",
             maxBytes=1 * 1024 * 1024,
             backupCount=1000,  # 1 Gig of logs
             encoding="utf-8",
@@ -114,7 +114,7 @@ class Server:
             settings_manager=self.settings_manager, sio=self.sio, serial=self.serial
         )
 
-        self.server_logger = logging.getLogger("dwe_os_2.Server")
+        self.server_logger = logging.getLogger("dweOS.Server")
 
         # Network management needs the host's system D-Bus, which isn't available
         # in containers (e.g. BlueOS, which runs with --no-wifi)

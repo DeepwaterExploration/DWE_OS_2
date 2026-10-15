@@ -1,7 +1,7 @@
 """
 ttyd.py
 
-Controls the terminal provided in DWE_OS
+Controls the terminal provided in dweOS
 """
 
 import subprocess

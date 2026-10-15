@@ -13,7 +13,7 @@ import {
 import IntegerControl from "./controls/integer-control";
 import BooleanControl from "./controls/boolean-control";
 import MenuControl from "./controls/menu-control";
-import { components } from "@/schemas/dwe_os_2";
+import { components } from "@/schemas/dweos";
 import CameraControlMap from "./cam-control-map.json";
 import {
   Accordion,

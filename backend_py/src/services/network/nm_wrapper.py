@@ -17,7 +17,7 @@ class NetworkWrapper(EventEmitter):
     def __init__(self, sio: socketio.AsyncServer) -> None:
         super().__init__()
 
-        self.logger = logging.getLogger("dwe_os_2.network.NetworkWrapper")
+        self.logger = logging.getLogger("dweOS.network.NetworkWrapper")
 
         self.nm = AsyncNetworkManager()
         self.sio = sio

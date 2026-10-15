@@ -20,7 +20,7 @@ import {
   resolutionToString,
 } from "@/lib/util/stream";
 import { useCallback, useEffect, useState } from "react";
-import { components } from "@/schemas/dwe_os_2";
+import { components } from "@/schemas/dweos";
 import { FollowerList } from "./follower-list";
 import { CameraControls } from "../camera-controls";
 import { toast } from "sonner";

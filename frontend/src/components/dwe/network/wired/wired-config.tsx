@@ -1,6 +1,6 @@
 import { API_CLIENT } from "@/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { components } from "@/schemas/dwe_os_2";
+import { components } from "@/schemas/dweos";
 import { useContext, useEffect, useState } from "react";
 import {
   Accordion,

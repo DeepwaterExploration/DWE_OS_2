@@ -34,7 +34,7 @@ async def lifespan(app: FastAPI):  # noqa: ANN201
 
 # FastAPI application
 fastapi_app = FastAPI(
-    lifespan=lifespan, title="DWE OS API", description="API for DWE OS", version="0.1.0"
+    lifespan=lifespan, title="dweOS API", description="API for dweOS", version="0.1.0"
 )
 
 # CORS

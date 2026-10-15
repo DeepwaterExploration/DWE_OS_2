@@ -9,10 +9,10 @@ body:
     attributes:
       label: Search before asking
       description: >
-        🔍 Please search the [issues](https://github.com/DeepwaterExploration/DWE_OS_2/issues) to see if a similar bug report already exists.
+        🔍 Please search the [issues](https://github.com/DeepWaterExploration/dweOS/issues) to see if a similar bug report already exists.
       options:
         - label: >
-            I have searched the [project's issues](https://github.com/DeepwaterExploration/DWE_OS_2/issues) and found no similar bug report.
+            I have searched the [project's issues](https://github.com/DeepWaterExploration/dweOS/issues) and found no similar bug report.
           required: true
   - type: textarea
     attributes:

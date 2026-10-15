@@ -1,5 +1,5 @@
 import { Toggle } from "@/components/ui/toggle";
-import { components } from "@/schemas/dwe_os_2";
+import { components } from "@/schemas/dweos";
 import { useEffect, useState } from "react";
 
 const numberToBoolean = (val: number | boolean, VALUE_TRUE: number | boolean) =>

@@ -24,7 +24,7 @@ export function NavMain({
   const location = useLocation();
 
   return (
-    <SidebarGroup title="DWE OS">
+    <SidebarGroup title="dweOS">
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map((item) => (

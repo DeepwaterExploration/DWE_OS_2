@@ -9,7 +9,7 @@ Web interface driver for DWE.ai cameras.
 
 To install for any *supported* Linux system, run the following command: 
 
-`curl -s https://raw.githubusercontent.com/DeepwaterExploration/DWE_OS_2/main/install.sh | sudo bash -s`
+`curl -s https://raw.githubusercontent.com/DeepWaterExploration/dweOS/main/install.sh | sudo bash -s`
 
 ### Raspberry Pi Hardware PWM
 
@@ -27,8 +27,8 @@ dtoverlay=pwm-2chan
 1. Clone the repository
 
 ```sh
-git clone https://github.com/DeepwaterExploration/DWE_OS_2.git
-cd DWE_OS_2
+git clone https://github.com/DeepWaterExploration/dweOS.git
+cd dweOS
 ```
 
 3. Build the project

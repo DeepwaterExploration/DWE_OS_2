@@ -30,7 +30,7 @@ class ASICOption(BaseOption):
         self._callback = callback
 
         self.logger = logging.getLogger(
-            f"dwe_os_2.cameras.{interface.camera.path}.ASICOption.{name}"
+            f"dweOS.cameras.{interface.camera.path}.ASICOption.{name}"
         )
 
     @abstractmethod
