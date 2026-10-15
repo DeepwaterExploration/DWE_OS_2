@@ -101,28 +101,17 @@ class GStreamerPipelineBuilder:
                 sink += ",".join(f"{e.host}:{e.port}" for e in stream.endpoints)
                 return sink
             case StreamTypeEnum.RECORDING:
-                extension = (
-                    "avi" if stream.encode_type == StreamEncodeTypeEnum.MJPG else "mp4"
-                )
+                extension = "mkv"
                 timestamp = datetime.now().strftime("%F-%T")
                 fixed_bus_info = stream.bus_info.replace(".", "_")
                 unique_filename = f"{fixed_bus_info}__{timestamp}_%02d.{extension}"
                 unique_path = os.path.join(recording_directory, unique_filename)
                 stream.file_path = unique_path
-                muxer = "avimux" if extension == "avi" else "mp4mux"
-                # Split recordings into 5 minute segments
-                if extension == "avi":
-                    return (
-                        f'splitmuxsink location="{unique_path}" muxer={muxer} '
-                        "max-size-time=300000000000"
-                    )
                 return (
-                    f'splitmuxsink location="{unique_path}" async-finalize=true '
-                    f"muxer-factory={muxer} "
-                    'muxer-properties="properties,fragment-duration=1000" '
-                    "send-keyframe-requests=true "
+                    f'splitmuxsink location="{unique_path}" '
+                    "muxer-factory=matroskamux "
+                    'muxer-properties="properties,streamable=true" '
                     "max-size-time=300000000000"
-                    # "max-size-time=3000000000"
                 )
             case _:
                 return ""
