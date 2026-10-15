@@ -19,7 +19,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Search, RefreshCw } from "lucide-react";
+import { Search, RefreshCw, Download } from "lucide-react";
+import { toast } from "sonner";
 import {
   Pagination,
   PaginationContent,
@@ -36,6 +37,7 @@ import { LogDetailView } from "./log-detail-view";
 import { getLevelColor } from "@/lib/utils";
 import { TOUR_STEP_IDS } from "@/lib/tour-constants";
 import { useTour } from "@/components/tour/tour";
+import { downloadFile, getLogExportFileName, logsToCsv } from "@/lib/util/logs";
 
 const DEMO_LOG: components["schemas"]["LogSchema"][] = [
   {
@@ -181,6 +183,14 @@ export function LogViewer() {
 
   const displayedLogs = isActive ? DEMO_LOG : currentItems;
 
+  const exportLogs = () => {
+    if (logs.length === 0) {
+      toast.info("No logs to export");
+      return;
+    }
+    downloadFile(getLogExportFileName(), logsToCsv(logs), "text/csv");
+  };
+
   return (
     <div
       className="flex flex-col h-[calc(100vh-5.5rem)] gap-4"
@@ -220,6 +230,11 @@ export function LogViewer() {
             <RefreshCw
               className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
             />
+          </Button>
+
+          <Button variant="outline" onClick={exportLogs}>
+            <Download className="h-4 w-4" />
+            Export
           </Button>
         </div>
       </div>
