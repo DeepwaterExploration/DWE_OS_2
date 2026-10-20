@@ -23,7 +23,7 @@ class RecordingsService:
         self.recordings_path = os.path.join(data_dir, "recordings")
         RecordingsService.BASE_PATH = self.recordings_path
         self.recordings: list[RecordingInfo] = []
-        self.logger = logging.getLogger("dwe_os_2.RecordingsService")
+        self.logger = logging.getLogger("dweOS.RecordingsService")
         self.recordings_lock = threading.Lock()
 
         self.durations = {}

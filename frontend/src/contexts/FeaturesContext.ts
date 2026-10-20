@@ -1,5 +1,5 @@
 import React from "react";
-import type { components } from "@/schemas/dwe_os_2";
+import type { components } from "@/schemas/dweos";
 
 type FeatureSupport = components["schemas"]["FeatureSupport"];
 

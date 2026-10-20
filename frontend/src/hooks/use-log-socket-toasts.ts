@@ -1,7 +1,7 @@
 import { useContext, useEffect } from "react";
 import { toast } from "sonner";
 import WebsocketContext from "@/contexts/WebsocketContext";
-import type { components } from "@/schemas/dwe_os_2";
+import type { components } from "@/schemas/dweos";
 
 type LogSchema = components["schemas"]["LogSchema"];
 

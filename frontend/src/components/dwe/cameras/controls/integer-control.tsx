@@ -2,7 +2,7 @@
 
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
-import { components } from "@/schemas/dwe_os_2";
+import { components } from "@/schemas/dweos";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";

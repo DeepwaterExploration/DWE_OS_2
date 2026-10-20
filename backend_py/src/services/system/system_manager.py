@@ -7,7 +7,7 @@ class SystemManager:
     SHUTDOWN_COMMAND = ["shutdown", "now"]
 
     def __init__(self) -> None:
-        self.logger = logging.getLogger("dwe_os_2.SystemManager")
+        self.logger = logging.getLogger("dweOS.SystemManager")
 
     def restart_system(self) -> None:
         self.logger.info("Restarting system")

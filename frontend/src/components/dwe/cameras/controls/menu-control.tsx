@@ -6,7 +6,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { useEffect, useState } from "react";
-import { components } from "@/schemas/dwe_os_2";
+import { components } from "@/schemas/dweos";
 
 const MenuControl = ({
   control,

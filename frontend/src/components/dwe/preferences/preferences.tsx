@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import WebsocketContext from "@/contexts/WebsocketContext";
 import { cn } from "@/lib/utils";
-import { components } from "@/schemas/dwe_os_2";
+import { components } from "@/schemas/dweos";
 import { useContext, useEffect, useState } from "react";
 import NotConnected from "../not-connected";
 import { TOUR_STEP_IDS } from "@/lib/tour-constants";
@@ -179,7 +179,7 @@ const PreferencesLayout = () => {
             <CardTitle className="font-bold pb-2">
               Guided Tour{" "}
               <div className="text-sm text-muted-foreground font-normal">
-                Restart the DWE OS guided tour. This will refresh the
+                Restart the dweOS guided tour. This will refresh the
                 application.
               </div>
             </CardTitle>

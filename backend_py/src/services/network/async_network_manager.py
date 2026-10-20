@@ -142,7 +142,7 @@ class ConnectionProfile(EventEmitter):
     def __init__(self, dbus_path: str) -> None:
         super().__init__()
 
-        self.logger = logging.getLogger("dwe_os_2.network.ConnectionProfile")
+        self.logger = logging.getLogger("dweOS.network.ConnectionProfile")
 
         self.settings: NetworkConnectionSettings = NetworkConnectionSettings(dbus_path)
         self.dbus_path = dbus_path
@@ -215,7 +215,7 @@ class WiredDevice(EventEmitter):
     def __init__(self, device_path: str) -> None:
         super().__init__()
 
-        self.logger = logging.getLogger("dwe_os_2.network.WiredDevice")
+        self.logger = logging.getLogger("dweOS.network.WiredDevice")
 
         self.nm_device = NetworkDeviceWired(device_path)
         self.interface: str | None = None
@@ -391,7 +391,7 @@ class AsyncNetworkManager(EventEmitter):
     def __init__(self) -> None:
         super().__init__()
 
-        self.logger = logging.getLogger("dwe_os_2.network.AsyncNetworkManager")
+        self.logger = logging.getLogger("dweOS.network.AsyncNetworkManager")
 
         # Get the system bus
         self.bus = sdbus.sd_bus_open_system()

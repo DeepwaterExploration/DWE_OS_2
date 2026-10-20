@@ -1,4 +1,4 @@
-import { components } from "@/schemas/dwe_os_2";
+import { components } from "@/schemas/dweos";
 
 /**
  * Lowest port at or above startPort that no camera's endpoints use yet, so a

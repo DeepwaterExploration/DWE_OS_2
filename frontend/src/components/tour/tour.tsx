@@ -509,11 +509,11 @@ export function TourAlertDialog({
             <AnimatedWaves className="h-32 text-primary w-32" />
           </div>
           <AlertDialogTitle className="text-center text-xl font-medium">
-            Welcome to DWE OS
+            Welcome to dweOS
           </AlertDialogTitle>
           <AlertDialogDescription className="text-muted-foreground mt-2 text-center text-sm">
             Take a quick tour to learn about the key features and functionality
-            of DWE OS.
+            of dweOS.
             <br />
             <br />
             <div className="text-foreground">

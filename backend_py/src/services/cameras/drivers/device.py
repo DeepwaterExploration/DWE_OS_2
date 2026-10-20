@@ -47,9 +47,7 @@ class Device(events.EventEmitter):
         for device_path in device_info.device_paths:
             self.cameras.append(Camera(device_path))
 
-        self.logger = logging.getLogger(
-            f"dwe_os_2.cameras.Device.{device_info.bus_info}"
-        )
+        self.logger = logging.getLogger(f"dweOS.cameras.Device.{device_info.bus_info}")
         self.logger.setLevel(logging.DEBUG)
 
         # If this device has been constructed, we can assume the DeviceManager did

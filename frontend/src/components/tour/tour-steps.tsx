@@ -1,7 +1,7 @@
 import { Separator } from "@/components/ui/separator";
 import { TourStep } from "@/components/tour/tour";
 import { TOUR_STEP_IDS } from "@/lib/tour-constants";
-import { components } from "@/schemas/dwe_os_2";
+import { components } from "@/schemas/dweos";
 import Markdown from "react-markdown";
 
 export function getSteps(
@@ -15,7 +15,7 @@ export function getSteps(
           <Separator />
           <div className="text-sm text-muted-foreground p-2">
             This controls the system's power setting, allowing you to turn off /
-            restart the system from within DWE OS. This will restart your entire
+            restart the system from within dweOS. This will restart your entire
             device!
           </div>
         </div>

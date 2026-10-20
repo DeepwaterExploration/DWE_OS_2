@@ -1,4 +1,4 @@
-import { components } from "@/schemas/dwe_os_2";
+import { components } from "@/schemas/dweos";
 import { clsx, type ClassValue } from "clsx";
 import React, { useEffect, useRef } from "react";
 import { twMerge } from "tailwind-merge";

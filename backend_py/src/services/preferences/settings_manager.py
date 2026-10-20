@@ -33,7 +33,7 @@ class SettingsManager:
         # Lock might work fine here
         self._lock = threading.RLock()
 
-        self.logger = logging.getLogger("dwe_os_2.SettingsManager")
+        self.logger = logging.getLogger("dweOS.SettingsManager")
 
         try:
             settings: list[dict] = json.loads(self.file_object.read())

@@ -9,7 +9,7 @@ import {
   Trash2Icon,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { components } from "@/schemas/dwe_os_2";
+import { components } from "@/schemas/dweos";
 
 import { TOUR_STEP_IDS } from "@/lib/tour-constants";
 import { getNextAvailablePort } from "@/lib/util/device";

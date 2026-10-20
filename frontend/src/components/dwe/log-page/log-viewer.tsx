@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/pagination";
 import WebsocketContext from "@/contexts/WebsocketContext";
 import { API_CLIENT } from "@/api";
-import { components } from "@/schemas/dwe_os_2";
+import { components } from "@/schemas/dweos";
 import { LogDetailView } from "./log-detail-view";
 import { getLevelColor } from "@/lib/utils";
 import { TOUR_STEP_IDS } from "@/lib/tour-constants";

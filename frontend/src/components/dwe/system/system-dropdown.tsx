@@ -87,8 +87,8 @@ export function SystemDropdown() {
             </DialogTitle>
             <DialogDescription>
               {action === "restart"
-                ? "This will restart the entire system running DWE OS. Active processes will be interrupted."
-                : "This will shut down the entire system running DWE OS. Make sure to save your work before proceeding."}
+                ? "This will restart the entire system running dweOS. Active processes will be interrupted."
+                : "This will shut down the entire system running dweOS. Make sure to save your work before proceeding."}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

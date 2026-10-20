@@ -1,4 +1,4 @@
-import { components } from "@/schemas/dwe_os_2";
+import { components } from "@/schemas/dweos";
 
 export type RecordingInfo = components["schemas"]["RecordingInfo"];
 

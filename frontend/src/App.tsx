@@ -26,7 +26,7 @@ import { TourAlertDialog, TourProvider, useTour } from "@/components/tour/tour";
 import { getSteps } from "./components/tour/tour-steps";
 import FeaturesContext from "./contexts/FeaturesContext";
 import { useLogSocketToasts } from "./hooks/use-log-socket-toasts";
-import { components } from "./schemas/dwe_os_2";
+import { components } from "./schemas/dweos";
 
 type WelcomeTourProps = { features: components["schemas"]["FeatureSupport"] };
 function WelcomeTourManager(props: WelcomeTourProps) {
@@ -90,7 +90,7 @@ function AppContent() {
         <header className="sticky top-0 flex h-14 shrink-0 items-center gap-2 bg-background z-50">
           <div className="flex flex-1 items-center gap-2 px-3">
             <SidebarTrigger />
-            <h1 className="text-xl font-bold sm:ml-2 text-nowrap">DWE OS</h1>
+            <h1 className="text-xl font-bold sm:ml-2 text-nowrap">dweOS</h1>
             <Separator orientation="vertical" className="mx-2 h-4" />
             <Breadcrumb>
               <BreadcrumbList>

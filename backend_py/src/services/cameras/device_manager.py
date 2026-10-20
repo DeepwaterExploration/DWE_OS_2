@@ -86,7 +86,7 @@ class DeviceManager(events.EventEmitter):
 
         self.serial = serial
 
-        self.logger = logging.getLogger("dwe_os_2.cameras.DeviceManager")
+        self.logger = logging.getLogger("dweOS.cameras.DeviceManager")
 
         # Captured in start_monitoring
         self._loop: asyncio.AbstractEventLoop | None = None
