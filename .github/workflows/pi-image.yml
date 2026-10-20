@@ -10,10 +10,10 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Release tag to build the image for (e.g. v0.7.7)"
+        description: "Release tag to build the image for"
         required: true
       upload_to_release:
-        description: "Attach the image to the release (otherwise it's only kept as a workflow artifact)"
+        description: "Attach the image to the release"
         type: boolean
         default: false
 
