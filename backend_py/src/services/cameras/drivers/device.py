@@ -302,6 +302,8 @@ class Device(events.EventEmitter):
             camera.close()
         self.v4l2_device.close()
 
+        self.asic_interface.stop()
+
     def load_settings(self, saved_device: SavedDeviceModel) -> None:
         self.logger.info("Loading device settings")
 

@@ -112,6 +112,8 @@ class SHDDevice(Device):
             self.leader_device.remove_follower(self)
             # We could save (see notes)
 
+        self.asic_interface._is_disabled = True
+
         super().on_external_managed()
 
     def on_external_unmanaged(self) -> None:

@@ -401,7 +401,7 @@ class DeviceManager(events.EventEmitter):
             if not removed_device:
                 continue
 
-            removed_device.stream_runner.stop()
+            removed_device.close()
 
             # What to do when a device is unplugged
             # Remove unplugged followers from leaders, and unplugged leaders
