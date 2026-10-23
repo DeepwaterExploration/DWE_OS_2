@@ -1,6 +1,7 @@
 # dweOS
 
 [![Backend CI](https://github.com/DeepWaterExploration/dweOS/actions/workflows/backend.yml/badge.svg)](https://github.com/DeepWaterExploration/dweOS/actions/workflows/backend.yml) [![Frontend CI](https://github.com/DeepWaterExploration/dweOS/actions/workflows/frontend.yml/badge.svg)](https://github.com/DeepWaterExploration/dweOS/actions/workflows/frontend.yml) [![Build Release](https://github.com/DeepWaterExploration/dweOS/actions/workflows/release.yml/badge.svg)](https://github.com/DeepWaterExploration/dweOS/actions/workflows/release.yml)
+[![BlueOS Plugin: Version](https://img.shields.io/docker/v/deepwaterexploration/dwe_os_2?color=blue&labelColor=white&label=BlueOS%20Plugin&sort=semver&arch=arm64&logo=data:image/svg%2Bxml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNTkuMDkgMjU5LjA5Ij4KICA8dGl0bGU+Qmx1ZVJvYm90aWNzLUxvZ288L3RpdGxlPgogIDxwYXRoIGZpbGw9IiMyYzk5Y2UiIGQ9Ik0xNDcuMjMsMjU3Ljg5QTEyOS41NywxMjkuNTcsMCwwLDEsNzQuODEsMTIuMWM2Ljg2LDEwLjMyLDE4LjY5LDI5LjgyLDIwLDUyLjJhNzMuOTIsNzMuOTIsMCwwLDAsMTYuODEsMTM3QzExNi4xNywyMTYuMjYsMTIwLjEzLDIyNS4yNiwxNDcuMjMsMjU3Ljg5Wk0xMjkuNTQsMGExMjkuNTYsMTI5LjU2LDAsMCwxLDU0Ljc0LDI0N2MtNi44Ni0xMC4zMi0xOC42OS0yOS44Mi0yMC01Mi4yQTczLjkyLDczLjkyLDAsMCwwLDE0Ny40Niw1Ny44NGMtNC41NC0xNS04LjUtMjQtMzUuNi01Ni42NEExMzAuNDgsMTMwLjQ4LDAsMCwxLDEyOS41NCwwWiI+PC9wYXRoPgo8L3N2Zz4K)](https://hub.docker.com/r/deepwaterexploration/dwe_os_2/tags)
 
 Web interface driver for DWE.ai cameras.
 
@@ -49,6 +50,21 @@ sudo ./build.sh -c config
 ```
 
 The image will be found in the deploy folder. The latest release from github will be used for building the image.
+
+## Preview Builds
+
+Every pull request can be installed before it is merged. The [Preview Release](.github/workflows/preview-release.yml) workflow builds the pull request merged into its base branch and publishes it as the GitHub prerelease `preview-pr-<number>`. It also comments the install command on the pull request:
+
+```sh
+curl -s https://raw.githubusercontent.com/DeepwaterExploration/dweOS/main/install.sh | sudo bash -s preview-pr-<number>
+```
+
+- The version badge shows the build as a preview, for example `v0.7.7-pr556.a1b2c3d`.
+- Every push to the pull request rebuilds the preview in place.
+- Closing or merging the pull request deletes the prerelease and its tag.
+- Previews are only built for branches in this repository, not forks, and are not published for BlueOS.
+
+To return to the latest stable release, run the install command without a tag.
 
 ## Creating a Release
 

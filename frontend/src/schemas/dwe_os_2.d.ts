@@ -758,6 +758,8 @@ export interface components {
             /** Bus Info */
             bus_info: string;
             event: components["schemas"]["ManagedEvent"];
+            /** Pid */
+            pid?: number | null;
         };
         /** MenuItemModel */
         MenuItemModel: {

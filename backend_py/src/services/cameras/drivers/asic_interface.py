@@ -50,6 +50,8 @@ class ASICInterface:
             f"dwe_os_2.cameras.shd.ASICInterface.{camera.path}"
         )
 
+        self._is_disabled = False
+
         self._thread = threading.Thread(target=self._sync_sync_asic_writes, daemon=True)
         self._thread.start()
 
@@ -59,6 +61,16 @@ class ASICInterface:
             self.logger.error("Unable to read chip ID, device may be faulty")
         else:
             self.device_family = CHIP_ID_DEVICE_MAP.get(self.chip_id)
+
+    def stop(self) -> None:
+        self.logger.info("Stopping asic interface")
+        if self._thread:
+            with self._queue_cond:
+                self._is_worker_running = False
+                self._commands = {}
+                self._queue_cond.notify_all()
+            self._thread.join()
+        self.logger.info("Stopped asic interface")
 
     def _sync_sync_asic_writes(self) -> None:
         while self._is_worker_running:
@@ -70,8 +82,10 @@ class ASICInterface:
                 self._commands = {}
 
             for _key, task in tasks_to_run.items():
-                # self.logger.info(f"Running task {key} with {task.args}")
-                task.func(*task.args)
+                try:
+                    task.func(*task.args)
+                except Exception:
+                    self.logger.exception("Task %s failed", _key)
 
     def queue_command(self, key: str, func: Callable, args: list) -> None:
         with self._queue_cond:
@@ -236,6 +250,9 @@ class ASICInterface:
         Write a value to an ASIC register.
         """
         with self._lock:
+            if self._is_disabled:
+                return 1
+
             unit = Unit.SYS_ID
             selector = Selector.SYS_ASIC_RW
             size = 4
@@ -256,6 +273,9 @@ class ASICInterface:
         On failure, returns a non-zero error code and -1 as the value.
         """
         with self._lock:
+            if self._is_disabled:
+                return (1, -1)
+
             # perform a dummy write to select the correct address
             ret = self.sync_asic_write(addr, 0, True)
             if ret != 0:
@@ -352,6 +372,15 @@ class ASICInterface:
 
         return ret, val
 
+    def _wait_sensor_ready(self, timeout_s: float = 5) -> bool:
+        deadline = time.monotonic() + timeout_s
+        while self._is_worker_running and time.monotonic() < deadline:
+            ret, val = self.asic_read(StellarRegisterMap.REG_TRIG)
+            if ret == 0 and val == 0xAA:
+                return True
+            time.sleep(0.1)
+        return False
+
     def sync_sensor_write_high_low(
         self, reg_high: int, reg_low: int, value: int, write_delay_s=0.05
     ) -> None:
@@ -363,16 +392,14 @@ class ASICInterface:
         # trigger register before release (See below)
         # time.sleep(write_delay_s)
         self.logger.info("Starting read")
-        while self.asic_read(StellarRegisterMap.REG_TRIG)[1] != 0xAA:
-            continue
+        self._wait_sensor_ready()
         self.logger.info("Finishing read")
 
         # Maybe: add check for success (0xAA in REG_TRIG)
         # REG_TRIG actually seems to not work properly, so maybe
         # we find another alternative
         self.sync_sensor_write(reg_low, value & 0xFF)
-        while self.asic_read(StellarRegisterMap.REG_TRIG)[1] != 0xAA:
-            continue
+        self._wait_sensor_ready()
 
     def sensor_read_high_low(self, reg_high, reg_low) -> int | None:
         """
