@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import time
 
 import serial
 from serial.tools import list_ports
@@ -13,6 +14,37 @@ LEG_PWM_USB_PID = 0x6001
 frequency_table = {60: 60.0, 50: 50.0, 40: 40.0, 30: 30.0, 15: 15.0}
 
 MONITOR_INTERVAL_SEC = 0.75
+
+# While this unit is enabled, it owns the PWM board and dweOS acts as if the
+# board does not exist. The board resets whenever its port is opened or closed,
+# so dweOS must not open it at all, even briefly (see README)
+PWM_OWNER_UNIT = "rtpsender.service"
+OWNER_CHECK_INTERVAL_SEC = 5.0
+
+
+async def _is_unit_enabled(unit: str) -> bool:
+    try:
+        # Exit code 0 indicates the unit is enabled or will start at boot
+        # via other means.
+        process = await asyncio.create_subprocess_exec(
+            "systemctl",
+            "is-enabled",
+            "-q",
+            unit,
+            stderr=asyncio.subprocess.DEVNULL,
+        )
+    except OSError:
+        # No systemd (e.g. containers), so nothing can own the board
+        return False
+
+    try:
+        return_code = await asyncio.wait_for(process.wait(), timeout=5)
+    except asyncio.TimeoutError:
+        process.kill()
+        # Can't tell, so don't risk resetting a board that may be in use
+        return True
+
+    return return_code == 0
 
 
 def _find_pwm_device_path() -> str | None:
@@ -46,6 +78,9 @@ class SerialPWMController:
         self._monitor_task: asyncio.Task | None = None
         self._running = False
 
+        self.owner_enabled = False
+        self._last_owner_check = 0.0
+
     def set_frequency_offset(self, frequency_offset: float) -> None:
         self.frequency_offset = frequency_offset
         self.apply(self.frequency, self.duty_cycle)
@@ -60,10 +95,29 @@ class SerialPWMController:
                 pass
             self.serial = None
 
+    async def _update_owner_enabled(self) -> None:
+        now = time.monotonic()
+        if now - self._last_owner_check < OWNER_CHECK_INTERVAL_SEC:
+            return
+        self._last_owner_check = now
+
+        owner_enabled = await _is_unit_enabled(PWM_OWNER_UNIT)
+        if owner_enabled != self.owner_enabled:
+            if owner_enabled:
+                self.logger.info(
+                    "%s is enabled, ignoring the PWM board", PWM_OWNER_UNIT
+                )
+            else:
+                self.logger.info(
+                    "%s is no longer enabled, using the PWM board", PWM_OWNER_UNIT
+                )
+        self.owner_enabled = owner_enabled
+
     async def _monitor_loop(self) -> None:
         try:
             while self._running:
-                path = _find_pwm_device_path()
+                await self._update_owner_enabled()
+                path = None if self.owner_enabled else _find_pwm_device_path()
                 if path:
                     if (
                         self.found_port

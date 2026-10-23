@@ -22,6 +22,20 @@ Add the following lines to the end of the file, and reboot.
 dtoverlay=pwm-2chan
 ```
 
+### Frame Sync Board and rtpsender
+
+dweOS sets the frequency of the DWE frame sync board over USB serial. If `rtpsender.service` is enabled (`systemctl is-enabled -q rtpsender.service` exits with code 0), dweOS acts as if the board does not exist. This is true even when rtpsender is not running. The board resets each time its serial port is opened or closed, so dweOS does not open the port at all.
+
+While rtpsender is enabled:
+
+- dweOS does not set the sync frequency. rtpsender must configure the board.
+- Changing a follower camera's frame rate in dweOS does not change the sync frequency. If the camera and board frequencies differ, frame sync will not work correctly.
+- The frequency offset preference has no effect.
+- `GET /api/pwm/frequency` returns the last value dweOS stored, not the board's frequency. `POST /api/pwm/frequency` and `POST /api/pwm/apply_from_fps` store a value but do not send it to the board.
+- If rtpsender stops or crashes, dweOS does not take over the board. Disable the unit to give the board back to dweOS.
+
+dweOS checks the unit state about every 5 seconds. If rtpsender is enabled while dweOS has the port open, dweOS closes the port.
+
 ## Building for development
 
 1. Clone the repository
