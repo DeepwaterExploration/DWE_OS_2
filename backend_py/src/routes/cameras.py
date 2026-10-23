@@ -140,7 +140,9 @@ def notify_camera(
     device_manager: DeviceManager = request.app.state.device_manager
 
     return SimpleRequestStatusModel(
-        success=device_manager.external_notify(notify.bus_info, notify.event)
+        success=device_manager.external_notify(
+            notify.bus_info, notify.event, notify.pid
+        )
     )
 
 

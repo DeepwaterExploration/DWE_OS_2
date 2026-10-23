@@ -101,7 +101,7 @@ class SHDDevice(Device):
 
             self.emit("updated")  # Trigger UI update
 
-    def on_external_managed(self) -> None:
+    def on_external_managed(self, owner_pid: int | None = None) -> None:
         # Remove all the followers
         # The manager will handle adding them
         for follower in list(self.follower_devices.keys()):
@@ -112,9 +112,7 @@ class SHDDevice(Device):
             self.leader_device.remove_follower(self)
             # We could save (see notes)
 
-        self.asic_interface._is_disabled = True
-
-        super().on_external_managed()
+        super().on_external_managed(owner_pid)
 
     def on_external_unmanaged(self) -> None:
         self.set_pu(-4, 0)

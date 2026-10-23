@@ -60,6 +60,8 @@ class Device(events.EventEmitter):
         self.bus_info = device_info.bus_info
         self.nickname = ""
         self.is_externally_managed = False
+        # PID of the external process managing this device, if it reported one
+        self.external_owner_pid: int | None = None
         self.stream = Stream(bus_info=self.bus_info)
 
         # ASIC Interface for low level register read/writes
@@ -127,10 +129,12 @@ class Device(events.EventEmitter):
 
     def on_external_unmanaged(self) -> None:
         self.is_externally_managed = False
+        self.external_owner_pid = None
         self.emit("updated")  # Trigger UI update
 
-    def on_external_managed(self) -> None:
+    def on_external_managed(self, owner_pid: int | None = None) -> None:
         self.is_externally_managed = True
+        self.external_owner_pid = owner_pid
         self.stop_stream()
         # Save the fact that the stream is stopped (could be done from updated)
         self.emit("save")
