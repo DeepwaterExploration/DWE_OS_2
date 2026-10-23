@@ -112,10 +112,12 @@ class SHDDevice(Device):
             self.leader_device.remove_follower(self)
             # We could save (see notes)
 
+        self.asic_interface._is_disabled = True
+
         super().on_external_managed(owner_pid)
 
     def on_external_unmanaged(self) -> None:
-        self.set_pu(-4, 0)
+        self.asic_interface._is_disabled = False
 
         super().on_external_unmanaged()
 
