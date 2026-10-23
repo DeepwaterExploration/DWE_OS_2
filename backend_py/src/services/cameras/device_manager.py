@@ -28,7 +28,7 @@ from backend_py.src.models import (
 )
 
 from ..preferences import SettingsManager
-from .device_utils import find_device_with_bus_info, list_diff
+from .device_utils import find_device_with_bus_info, is_process_alive, list_diff
 from .drivers.device import Device, DeviceInfo
 from .drivers.ehd import EHDDevice
 from .drivers.registry import lookup_vid_pid
@@ -327,7 +327,9 @@ class DeviceManager(events.EventEmitter):
 
         return True
 
-    def external_notify(self, bus_info: str, event: ManagedEvent) -> bool:
+    def external_notify(
+        self, bus_info: str, event: ManagedEvent, pid: int | None = None
+    ) -> bool:
         # Implementation notes on this function:
         #
         # DEVICE_MANAGED: When a notification that a device is managed is received
@@ -341,6 +343,9 @@ class DeviceManager(events.EventEmitter):
         #
         # DEVICE_UNMANAGED: When a device is unmanaged, it simply flips the flag,
         # and emits a state update to rerender the UI
+        #
+        # If a pid is given with DEVICE_MANAGED, the monitor loop will unmanage the
+        # device once that process exits, in case it never sends DEVICE_UNMANAGED
 
         try:
             device = self._find_device_with_bus_info(bus_info)
@@ -350,8 +355,10 @@ class DeviceManager(events.EventEmitter):
 
         match event:
             case ManagedEvent.DEVICE_MANAGED:
-                self.logger.info(f"Setting device: {bus_info} to externally managed")
-                device.on_external_managed()
+                self.logger.info(
+                    f"Setting device: {bus_info} to externally managed (pid: {pid})"
+                )
+                device.on_external_managed(pid)
             case ManagedEvent.STREAM_START:
                 self.logger.info(
                     f"Device: {bus_info} is now streaming from another program"
@@ -364,6 +371,21 @@ class DeviceManager(events.EventEmitter):
                 device.on_external_unmanaged()
 
         return True
+
+    def _release_orphaned_devices(self) -> None:
+        """
+        Unmanage externally managed devices whose managing process has exited
+        """
+        for device in self.devices:
+            pid = device.external_owner_pid
+            if pid is None or is_process_alive(pid):
+                continue
+
+            self.logger.warning(
+                f"Process {pid} managing device: {device.bus_info} exited without "
+                "unmanaging it"
+            )
+            device.on_external_unmanaged()
 
     def _find_device_with_bus_info(self, bus_info: str) -> Device:
         """
@@ -489,6 +511,7 @@ class DeviceManager(events.EventEmitter):
             await asyncio.sleep(1)
             # get the list of devices and update the internal array
             devices_info = await self._get_devices(devices_info)
+            self._release_orphaned_devices()
 
     async def _emit_stream_error(self, device: str, errors: list | str) -> None:
         """
