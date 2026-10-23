@@ -278,3 +278,6 @@ class ManagedEvent(Enum):
 class ManagedNotifyModel(BaseModel):
     bus_info: str
     event: ManagedEvent
+    # PID of the managing process. When sent with DEVICE_MANAGED, the device is
+    # automatically unmanaged once this process exits (e.g. if it crashes)
+    pid: int | None = Field(default=None, gt=0)
